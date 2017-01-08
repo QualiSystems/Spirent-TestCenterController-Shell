@@ -5,7 +5,6 @@ from cloudshell.shell.core.driver_context import AutoLoadDetails
 
 from testcenter.stc_app import StcApp
 from testcenter.api.stc_tcl import StcTclWrapper
-from cloudshell.api.cloudshell_api import CloudShellAPISession as cloudsehllAPI
 from cloudshell.shell.core.session.cloudshell_session import CloudShellSessionContext
 
 class StcHandler(object):
@@ -19,12 +18,12 @@ class StcHandler(object):
         self.logger = logging.getLogger('log')
         self.logger.setLevel('DEBUG')
 
-        #self.stc = StcApp(self.logger, StcTclWrapper(self.logger, client_install_path))
+        self.stc = StcApp(self.logger, StcTclWrapper(self.logger, client_install_path))
 
         address = context.resource.address
         if address.lower() in ('na', 'localhost'):
             address = None
-        #self.stc.connect(lab_server=address)
+        self.stc.connect(lab_server=address)
 
     def get_inventory(self, context):
         """
@@ -73,7 +72,7 @@ class StcHandler(object):
                         port.logic_name = val
                         ports_obj_dict[val] = port
 
-            #my_api.SetAttributeValue(resourceFullPath='', attributeName='', attributeValue='')
+
             #TODO!!: This part of code was not tested due to no access to STC
             #TODO !! Add flag if get ports from config
             self.stc.load_config(stc_config_file_name,get_data_from_config)
