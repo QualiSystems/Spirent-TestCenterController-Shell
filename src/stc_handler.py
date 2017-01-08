@@ -55,8 +55,29 @@ class StcHandler(object):
         my_api = self.get_api(context)
         r=my_api.GetReservationDetails(reservationId=reservation_id)
         print r
-        all_resources = [resources for resources in r.ReservationDescription.Resources if resources.ResourceFamilyName == "Traffic Generator Chassis" \
-                         or resources.ResourceFamilyName == "Port Group"]
+        #chassis_addr = ''
+        search_chassis = "Traffic Generator Chassis"
+        search_port = "Port"
+        chassis_obj = None
+        ports_obj = []
+        #all_resources = [resources for resources in r.ReservationDescription.Resources if resources.ResourceFamilyName == search_chassis \
+        #                 or resources.ResourceFamilyName == search_port]
+        for resource in r.ReservationDescription.Resources:
+            if resource.ResourceFamilyName == search_chassis:
+                #chassis_addr=resources.FullAddress
+                chassis_obj = resource
+            if resource.ResourceFamilyName == search_port:
+                ports_obj.append(resource)
+
+        ports_obj = [port_obj for port_obj in ports_obj if (chassis_obj.FullAddress in port_obj.FullAddress)]
+        for port in ports_obj:
+            val=my_api.GetAttributeValue(resourceFullPath=port.Name,attributeName="Logical Name")
+
+        print ports_obj
+
+
+
+
         print all_resources
 
         '''
