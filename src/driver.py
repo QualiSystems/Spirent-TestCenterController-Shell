@@ -14,7 +14,7 @@ class TestCenterControllerDriver(ResourceDriverInterface):
 
     def initialize(self, context):
         """
-        :param context: the context the command runs on
+        :param ResourceCommandContext ,ReservationContextDetails context: ResourceCommandContext,ReservationContextDetailsobject with all Resource Attributes inside
         :type context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
         """
         self.handler.initialize(context)
