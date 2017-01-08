@@ -5,6 +5,8 @@
 	    	<Parameters>
             	<Parameter Name="stc_config_file_name" Type="String" Mandatory="True"
                            DisplayName="STC configi file name" Description="Full path to STC configuration file name - tcc or xml" />
+                <Parameter Name="get_data_from_config" Type="String" Mandatory="True"
+                           DisplayName="Get Ports From Config" DefaultValue="False" Description="Flag indicates that we should read the ports from configuration file" />
             </Parameters>
         </Command>
 		<Command Name="send_arp" DisplayName="Start ARP/ND" Description="Send ARP/ND for all devices and streams" >

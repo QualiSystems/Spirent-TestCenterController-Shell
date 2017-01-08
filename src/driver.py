@@ -27,14 +27,14 @@ class TestCenterControllerDriver(ResourceDriverInterface):
         """
         return self.handler.get_inventory(context)
 
-    def load_config(self, context, stc_config_file_name):
+    def load_config(self, context, stc_config_file_name,get_data_from_config):
         """ Load STC configuration file and reserve ports.
 
         :param str stc_config_file_name: full path to STC configuration file (tcc or xml)
         :param context: the context the command runs on
         :type context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
         """
-        self.handler.load_config(context, stc_config_file_name)
+        self.handler.load_config(context, stc_config_file_name,get_data_from_config)
 
     def send_arp(self, context):
         """ Send ARP for all objects (ports, devices, streams)

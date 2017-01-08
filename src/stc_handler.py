@@ -42,56 +42,49 @@ class StcHandler(object):
 
         return CloudShellSessionContext(context).get_api()
 
-    def load_config(self, context, stc_config_file_name):
+    def load_config(self, context, stc_config_file_name,get_data_from_config=False):
         """
         :param str stc_config_file_name: full path to STC configuration file (tcc or xml)
         :param context: the context the command runs on
         :type context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
         """
+        if (get_data_from_config==False):
+            reservation_id = context.reservation.reservation_id
+            my_api = self.get_api(context)
+            r=my_api.GetReservationDetails(reservationId=reservation_id)
 
-        reservation_id = context.reservation.reservation_id
+            search_chassis = "Traffic Generator Chassis"
+            search_port = "Port"
+            chassis_obj = None
+            ports_obj = []
 
-        print reservation_id
-        my_api = self.get_api(context)
-        r=my_api.GetReservationDetails(reservationId=reservation_id)
-        print r
-        #chassis_addr = ''
-        search_chassis = "Traffic Generator Chassis"
-        search_port = "Port"
-        chassis_obj = None
-        ports_obj = []
-        #all_resources = [resources for resources in r.ReservationDescription.Resources if resources.ResourceFamilyName == search_chassis \
-        #                 or resources.ResourceFamilyName == search_port]
-        for resource in r.ReservationDescription.Resources:
-            if resource.ResourceFamilyName == search_chassis:
-                #chassis_addr=resources.FullAddress
-                chassis_obj = resource
-            if resource.ResourceFamilyName == search_port:
-                ports_obj.append(resource)
+            for resource in r.ReservationDescription.Resources:
+                if resource.ResourceFamilyName == search_chassis:
+                    chassis_obj = resource
+                if resource.ResourceFamilyName == search_port:
+                    ports_obj.append(resource)
 
-        ports_obj_filtered = [ ]
+            ports_obj_dict = dict()
 
-        for port in ports_obj:
-            if (chassis_obj.FullAddress in port.FullAddress):
-                val = my_api.GetAttributeValue(resourceFullPath=port.Name, attributeName="Logical Name").Value
-                if val!='':
-                    port.logic_name = val
-                    ports_obj_filtered.append(port)
+            for port in ports_obj:
+                if (chassis_obj.FullAddress in port.FullAddress):
+                    val = my_api.GetAttributeValue(resourceFullPath=port.Name, attributeName="Logical Name").Value
+                    if val!='':
+                        port.logic_name = val
+                        ports_obj_dict[val] = port
 
+            #my_api.SetAttributeValue(resourceFullPath='', attributeName='', attributeValue='')
+            #TODO!!: This part of code was not tested due to no access to STC
+            #TODO !! Add flag if get ports from config
+            self.stc.load_config(stc_config_file_name,get_data_from_config)
+            self.ports = self.stc.project.get_ports()
+            for port in self.ports:
+                #'physical location in the form ip/module/port'
+                physical_add = ports_obj_dict[port['Logical name']].FullAddress
+                port['Logical name'].reserve(physical_add)
+        else:
+            self.stc.load_config(stc_config_file_name, get_data_from_config)
 
-
-
-        print ports_obj_filtered
-
-
-
-
-
-        '''
-        self.stc.load_config(stc_config_file_name)
-        self.ports = self.stc.project.get_ports()
-        self.ports['Logical name'].reserve('physical location in the form ip/module/port')
-        '''
 
     def send_arp(self, context):
         """
