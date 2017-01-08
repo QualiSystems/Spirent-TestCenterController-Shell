@@ -69,16 +69,23 @@ class StcHandler(object):
             if resource.ResourceFamilyName == search_port:
                 ports_obj.append(resource)
 
-        ports_obj = [port_obj for port_obj in ports_obj if (chassis_obj.FullAddress in port_obj.FullAddress)]
+        ports_obj_filtered = [ ]
+
         for port in ports_obj:
-            val=my_api.GetAttributeValue(resourceFullPath=port.Name,attributeName="Logical Name")
+            if (chassis_obj.FullAddress in port.FullAddress):
+                val = my_api.GetAttributeValue(resourceFullPath=port.Name, attributeName="Logical Name").Value
+                if val!='':
+                    port.logic_name = val
+                    ports_obj_filtered.append(port)
 
-        print ports_obj
+
+
+
+        print ports_obj_filtered
 
 
 
 
-        print all_resources
 
         '''
         self.stc.load_config(stc_config_file_name)
