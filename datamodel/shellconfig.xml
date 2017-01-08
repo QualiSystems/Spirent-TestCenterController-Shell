@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ShellsConfiguration xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.qualisystems.com/ResourceManagement/ShellsConfigurationSchema.xsd">
+<ResourceTemplates>
+    <ResourceTemplate Name="TestCenter Controller" Model="TestCenter Controller" Driver="TestCenterControllerDriver">
+        <Description></Description>
+        <AutoLoad Enable="true">
+            <Description></Description>
+        </AutoLoad>
+        <Attributes>
+            <Attribute Name="Client Install Path" Value="" />
+            <Attribute Name="Controller Group" Value="" />
+            <Attribute Name="Controller TCP Port" Value="" />
+        </Attributes>
+    </ResourceTemplate>    
+</ResourceTemplates>
+</ShellsConfiguration>

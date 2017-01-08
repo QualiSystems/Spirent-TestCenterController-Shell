@@ -1,0 +1,7 @@
+shell:
+    name: Spirent-StcController-Shell
+    author: Yoram Shamir
+    email: yoram-s@quali.com
+    description: Spirent TestCenter (STC) application shell
+    version: 0.1.0
+    driver_name: TestCenterControllerDriver
