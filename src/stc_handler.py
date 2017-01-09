@@ -18,12 +18,12 @@ class StcHandler(object):
         self.logger = logging.getLogger('log')
         self.logger.setLevel('DEBUG')
 
-        self.stc = StcApp(self.logger, StcTclWrapper(self.logger, client_install_path))
+        #self.stc = StcApp(self.logger, StcTclWrapper(self.logger, client_install_path))
 
         address = context.resource.address
         if address.lower() in ('na', 'localhost'):
             address = None
-        self.stc.connect(lab_server=address)
+        #self.stc.connect(lab_server=address)
 
     def get_inventory(self, context):
         """
@@ -81,6 +81,8 @@ class StcHandler(object):
                 #'physical location in the form ip/module/port'
                 physical_add = ports_obj_dict[port['Logical name']].FullAddress
                 port['Logical name'].reserve(physical_add)
+
+        if(len(ports_obj_dict)==0): raise("You should add logical name for ports")
         else:
             self.stc.load_config(stc_config_file_name, get_data_from_config)
 

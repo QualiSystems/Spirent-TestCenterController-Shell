@@ -10,7 +10,7 @@ def create_context():
     context.resource = ResourceContextDetails()
     context.resource.name = 'TestCenter Controller 222'
     context.reservation = ReservationContextDetails()
-    context.reservation.reservation_id = '42f72fe8-b015-4548-a50e-6c62c3c517b1'
+    context.reservation.reservation_id = '5ccb5611-b092-46e8-a92a-76749d1d3124'
     context.reservation.owner_user = 'admin'
     context.reservation.owner_email = 'fake@qualisystems.com'
     context.reservation.environment_path ='admin_Environment-8-10-2016_13-58_29-09-2016_11-17-UTC'
