@@ -32,7 +32,7 @@ class StcHandler(object):
 
         return AutoLoadDetails([], [])
 
-    def get_api(self,context):
+    def get_api(self, context):
         """
 
         :param context:
@@ -41,16 +41,16 @@ class StcHandler(object):
 
         return CloudShellSessionContext(context).get_api()
 
-    def load_config(self, context, stc_config_file_name,get_data_from_config=False):
+    def load_config(self, context, stc_config_file_name, get_data_from_config=False):
         """
         :param str stc_config_file_name: full path to STC configuration file (tcc or xml)
         :param context: the context the command runs on
         :type context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
         """
-        if (get_data_from_config==False):
+        if not get_data_from_config:
             reservation_id = context.reservation.reservation_id
             my_api = self.get_api(context)
-            r=my_api.GetReservationDetails(reservationId=reservation_id)
+            r = my_api.GetReservationDetails(reservationId=reservation_id)
 
             search_chassis = "Traffic Generator Chassis"
             search_port = "Port"
@@ -68,7 +68,7 @@ class StcHandler(object):
             for port in ports_obj:
                 if (chassis_obj.FullAddress in port.FullAddress):
                     val = my_api.GetAttributeValue(resourceFullPath=port.Name, attributeName="Logical Name").Value
-                    if val!='':
+                    if val:
                         port.logic_name = val
                         ports_obj_dict[val] = port
 
