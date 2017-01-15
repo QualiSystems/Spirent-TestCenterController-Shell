@@ -47,17 +47,20 @@ class StcHandler(object):
         :param context: the context the command runs on
         :type context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
         """
+        self.stc.load_config(stc_config_file_name)
+        self.ports = self.stc.project.get_ports()
+
         if not get_data_from_config:
             reservation_id = context.reservation.reservation_id
             my_api = self.get_api(context)
-            r = my_api.GetReservationDetails(reservationId=reservation_id)
+            response = my_api.GetReservationDetails(reservationId=reservation_id)
 
             search_chassis = "Traffic Generator Chassis"
             search_port = "Port"
             chassis_obj = None
             ports_obj = []
 
-            for resource in r.ReservationDescription.Resources:
+            for resource in response.ReservationDescription.Resources:
                 if resource.ResourceFamilyName == search_chassis:
                     chassis_obj = resource
                 if resource.ResourceFamilyName == search_port:
@@ -73,8 +76,7 @@ class StcHandler(object):
                         ports_obj_dict[val] = port
 
 
-            self.stc.load_config(stc_config_file_name)
-            self.ports = self.stc.project.get_ports()
+
             for port_name, port in self.ports.items():
                 # 'physical location in the form ip/module/port'
                 if port_name in ports_obj_dict:
@@ -89,11 +91,13 @@ class StcHandler(object):
                 self.logger.error("You should add logical name for ports")
                 raise ("You should add logical name for ports")
         else:
-            self.stc.load_config(stc_config_file_name)
+            for port_name, port in self.ports.items():
+                # 'physical location in the form ip/module/port'
+                try:
+                    port.reserve(None)
+                except Exception as e:
+                    raise("Error: %s:"%(e))
 
-        if(len(ports_obj_dict)==0): raise("You should add logical name for ports")
-        else:
-            self.stc.load_config(stc_config_file_name)
         self.logger.info("Port Reservation Completed")
 
 
