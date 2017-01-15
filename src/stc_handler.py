@@ -80,9 +80,13 @@ class StcHandler(object):
                 if port_name in ports_obj_dict:
                     FullAddress = re.sub(r'PG.*?[^a-zA-Z0-9 ]', r'', ports_obj_dict[port_name].FullAddress)
                     physical_add = re.sub(r'[^./0-9 ]', r'', FullAddress)
-
-                    port.reserve(physical_add)
+                    self.logger.info("Logical Port %s will be reserved now on Physical location %s"%(port_name,physical_add))
+                    try:
+                        port.reserve(physical_add)
+                    except Exception as e:
+                        raise("Error: %s:"%(e))
             if not ports_obj_dict:
+                self.logger.error("You should add logical name for ports")
                 raise ("You should add logical name for ports")
         else:
             self.stc.load_config(stc_config_file_name)
@@ -90,6 +94,7 @@ class StcHandler(object):
         if(len(ports_obj_dict)==0): raise("You should add logical name for ports")
         else:
             self.stc.load_config(stc_config_file_name)
+        self.logger.info("Port Reservation Completed")
 
 
     def send_arp(self, context):
