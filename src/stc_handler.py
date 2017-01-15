@@ -6,7 +6,7 @@ from cloudshell.shell.core.driver_context import AutoLoadDetails
 from testcenter.stc_app import StcApp
 from testcenter.api.stc_tcl import StcTclWrapper
 from cloudshell.shell.core.session.cloudshell_session import CloudShellSessionContext
-
+import re
 class StcHandler(object):
 
     def initialize(self, context):
@@ -18,12 +18,12 @@ class StcHandler(object):
         self.logger = logging.getLogger('log')
         self.logger.setLevel('DEBUG')
 
-        #self.stc = StcApp(self.logger, StcTclWrapper(self.logger, client_install_path))
+        self.stc = StcApp(self.logger, StcTclWrapper(self.logger, client_install_path))
 
         address = context.resource.address
         if address.lower() in ('na', 'localhost'):
             address = None
-        #self.stc.connect(lab_server=address)
+        self.stc.connect(lab_server=address)
 
     def get_inventory(self, context):
         """
@@ -73,18 +73,23 @@ class StcHandler(object):
                         ports_obj_dict[val] = port
 
 
-            #TODO!!: This part of code was not tested due to no access to STC
-            #TODO !! Add flag if get ports from config
-            self.stc.load_config(stc_config_file_name,get_data_from_config)
+            self.stc.load_config(stc_config_file_name)
             self.ports = self.stc.project.get_ports()
-            for port in self.ports:
-                #'physical location in the form ip/module/port'
-                physical_add = ports_obj_dict[port['Logical name']].FullAddress
-                port['Logical name'].reserve(physical_add)
+            for port_name, port in self.ports.items():
+                # 'physical location in the form ip/module/port'
+                if port_name in ports_obj_dict:
+                    FullAddress = re.sub(r'PG.*?[^a-zA-Z0-9 ]', r'', ports_obj_dict[port_name].FullAddress)
+                    physical_add = re.sub(r'[^./0-9 ]', r'', FullAddress)
+
+                    port.reserve(physical_add)
+            if not ports_obj_dict:
+                raise ("You should add logical name for ports")
+        else:
+            self.stc.load_config(stc_config_file_name)
 
         if(len(ports_obj_dict)==0): raise("You should add logical name for ports")
         else:
-            self.stc.load_config(stc_config_file_name, get_data_from_config)
+            self.stc.load_config(stc_config_file_name)
 
 
     def send_arp(self, context):

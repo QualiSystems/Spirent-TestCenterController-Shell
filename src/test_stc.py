@@ -10,15 +10,15 @@ def create_context():
     context.resource = ResourceContextDetails()
     context.resource.name = 'TestCenter Controller 222'
     context.reservation = ReservationContextDetails()
-    context.reservation.reservation_id = '5ccb5611-b092-46e8-a92a-76749d1d3124'
+    context.reservation.reservation_id = '05106348-e80f-4e89-8abf-bbe6aab05e2b'
     context.reservation.owner_user = 'admin'
     context.reservation.owner_email = 'fake@qualisystems.com'
-    context.reservation.environment_path ='admin_Environment-8-10-2016_13-58_29-09-2016_11-17-UTC'
-    context.reservation.environment_name = 'admin_Environment-8-10-2016_13-58_29-09-2016_11-17-UTC'
+    context.reservation.environment_path ='Reservation-1-14-2017 22-07'
+    context.reservation.environment_name = 'Reservation-1-14-2017 22-07'
     context.reservation.domain = 'Global'
     context.resource.attributes = {}
-    context.resource.attributes['Client Install Path'] = 'C://'
-    context.resource.address = '172.19.47.74'
+    context.resource.attributes['Client Install Path'] = 'C:\Program Files (x86)\Spirent Communications\Spirent TestCenter 4.52'
+    context.resource.address = 'localhost'
     return context
 
 
@@ -111,7 +111,7 @@ if __name__ == '__main__':
     #response = driver.save(context, 'tftp://172.19.107.44/test', 'startup')
     #response = driver.restore(context, 'cfcard:/config_backup/vrpcfg.zip', 'startup', 'override')
     #res = driver.ApplyConnectivityChanges(context, request)
-    response = driver.load_config(context,"dd",False)
+    response = driver.load_config(context,"C:\Users\luiza.n\Documents\configurationtest1.tcc",False)
     print response
     #res=driver.update_firmware(context,'1.1.1.1','flash:/config_backup/')
     #print driver.send_custom_command(context, "display version")

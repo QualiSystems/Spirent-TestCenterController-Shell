@@ -4,7 +4,7 @@ from cloudshell.shell.core.resource_driver_interface import ResourceDriverInterf
 from stc_handler import StcHandler
 
 import sys
-sys.path.append('E:/eclipse64/plugins/org.python.pydev_3.1.0.201312121632/pysrc')
+
 
 
 class TestCenterControllerDriver(ResourceDriverInterface):
