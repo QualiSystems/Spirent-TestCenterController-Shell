@@ -145,10 +145,10 @@ class StcHandler(object):
         gen_stats = StcStats(view_name)
         gen_stats.read_stats()
         statistics =  gen_stats.statistics
-
+        my_api = self.get_api(context)
         if(output_file.lower()=='json'):
             statistics = json.dumps(statistics, ensure_ascii=False)
-            my_api=self.get_api(context)
+
             my_api.WriteMessageToReservationOutput(statistics)
         elif (output_file.lower()=='csv'):
             output = io.BytesIO()
