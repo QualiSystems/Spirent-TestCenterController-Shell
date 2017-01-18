@@ -6,7 +6,9 @@ from cloudshell.shell.core.driver_context import AutoLoadDetails
 from testcenter.stc_app import StcApp
 from testcenter.api.stc_tcl import StcTclWrapper
 from cloudshell.shell.core.session.cloudshell_session import CloudShellSessionContext
-import re
+import re,json,csv,io
+from testcenter.stc_statistics_view import StcStats
+
 class StcHandler(object):
 
     def initialize(self, context):
@@ -73,12 +75,13 @@ class StcHandler(object):
                     val = my_api.GetAttributeValue(resourceFullPath=port.Name, attributeName="Logical Name").Value
                     if val:
                         port.logic_name = val
-                        ports_obj_dict[val] = port
+                        ports_obj_dict[val.lower().strip()] = port
 
 
 
             for port_name, port in self.ports.items():
                 # 'physical location in the form ip/module/port'
+                port_name = port_name.lower().strip()
                 if port_name in ports_obj_dict:
                     FullAddress = re.sub(r'PG.*?[^a-zA-Z0-9 ]', r'', ports_obj_dict[port_name].FullAddress)
                     physical_add = re.sub(r'[^./0-9 ]', r'', FullAddress)
@@ -105,7 +108,6 @@ class StcHandler(object):
         """
         :type context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
         """
-
         self.stc.send_arp_ns()
 
     def start_devices(self, context):
@@ -135,3 +137,24 @@ class StcHandler(object):
         """
 
         self.stc.stop_traffic()
+
+    def get_statistics(self, context,view_name,output_type):
+        output_file = output_type.lower().strip()
+        if (output_file!='json' and output_file!='csv'):
+            raise Exception("The output format should be json or csv")
+        gen_stats = StcStats(view_name)
+        gen_stats.read_stats()
+        statistics =  gen_stats.statistics
+
+        if(output_file.lower()=='json'):
+            statistics = json.dumps(statistics, ensure_ascii=False)
+            my_api=self.get_api(context)
+            my_api.WriteMessageToReservationOutput(statistics)
+        elif (output_file.lower()=='csv'):
+            output = io.BytesIO()
+            w = csv.DictWriter(output, statistics.keys())
+            w.writeheader()
+            w.writerow(statistics)
+            my_api.WriteMessageToReservationOutput(output.getvalue())
+
+

@@ -112,6 +112,10 @@ if __name__ == '__main__':
     #response = driver.restore(context, 'cfcard:/config_backup/vrpcfg.zip', 'startup', 'override')
     #res = driver.ApplyConnectivityChanges(context, request)
     response = driver.load_config(context,"C:\Users\luiza.n\Documents\configurationtest1.tcc",False)
+    response = driver.start_devices(context)
+    response = driver.send_arp(context)
+    driver.start_traffic(context)
+    driver.get_statistics(context,'generatorportresults', "csv")
     print response
     #res=driver.update_firmware(context,'1.1.1.1','flash:/config_backup/')
     #print driver.send_custom_command(context, "display version")
