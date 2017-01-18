@@ -149,12 +149,12 @@ class StcHandler(object):
         if(output_file.lower()=='json'):
             statistics = json.dumps(statistics, ensure_ascii=False)
 
-            my_api.WriteMessageToReservationOutput(statistics)
+            my_api.WriteMessageToReservationOutput(str(statistics))
         elif (output_file.lower()=='csv'):
             output = io.BytesIO()
             w = csv.DictWriter(output, statistics.keys())
             w.writeheader()
             w.writerow(statistics)
-            my_api.WriteMessageToReservationOutput(output.getvalue())
+            my_api.WriteMessageToReservationOutput(str(output.getvalue()))
 
 
