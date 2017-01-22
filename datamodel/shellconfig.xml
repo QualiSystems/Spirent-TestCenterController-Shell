@@ -8,7 +8,6 @@
         </AutoLoad>
         <Attributes>
             <Attribute Name="Client Install Path" Value="" />
-            <Attribute Name="Controller Group" Value="" />
             <Attribute Name="Controller TCP Port" Value="" />
         </Attributes>
     </ResourceTemplate>    

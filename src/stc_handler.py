@@ -8,6 +8,8 @@ from testcenter.api.stc_tcl import StcTclWrapper
 from cloudshell.shell.core.session.cloudshell_session import CloudShellSessionContext
 import re,json,csv,io
 from testcenter.stc_statistics_view import StcStats
+import os, os.path
+
 
 class StcHandler(object):
 
@@ -16,8 +18,10 @@ class StcHandler(object):
         :type context: cloudshell.shell.core.driver_context.InitCommandContext
         """
 
+
         client_install_path = context.resource.attributes['Client Install Path']
-        self.logger = logging.getLogger('log')
+        logging.basicConfig(filename='example.log', level=logging.DEBUG)
+        self.logger = logging.getLogger('root')
         self.logger.setLevel('DEBUG')
 
         self.stc = StcApp(self.logger, StcTclWrapper(self.logger, client_install_path))
@@ -25,6 +29,7 @@ class StcHandler(object):
         address = context.resource.address
         if address.lower() in ('na', 'localhost'):
             address = None
+        self.logger.info("connecting to address {0}".format(address))
         self.stc.connect(lab_server=address)
 
     def get_inventory(self, context):
@@ -85,14 +90,14 @@ class StcHandler(object):
                 if port_name in ports_obj_dict:
                     FullAddress = re.sub(r'PG.*?[^a-zA-Z0-9 ]', r'', ports_obj_dict[port_name].FullAddress)
                     physical_add = re.sub(r'[^./0-9 ]', r'', FullAddress)
-                    self.logger.info("Logical Port %s will be reserved now on Physical location %s"%(port_name,physical_add))
+                    self.logger.info("Logical Port %s will be reserved now on Physical location %s"%(str(port_name),str(physical_add)))
                     try:
                         port.reserve(physical_add)
                     except Exception as e:
                         raise("Error: %s:"%(e))
             if not ports_obj_dict:
                 self.logger.error("You should add logical name for ports")
-                raise ("You should add logical name for ports")
+                raise Exception ("You should add logical name for ports")
         else:
             for port_name, port in self.ports.items():
                 # 'physical location in the form ip/module/port'
@@ -145,16 +150,17 @@ class StcHandler(object):
         gen_stats = StcStats(view_name)
         gen_stats.read_stats()
         statistics =  gen_stats.statistics
+        reservation_id = context.reservation.reservation_id
         my_api = self.get_api(context)
         if(output_file.lower()=='json'):
             statistics = json.dumps(statistics, ensure_ascii=False)
-
-            my_api.WriteMessageToReservationOutput(str(statistics))
+            #print statistics
+            my_api.WriteMessageToReservationOutput(reservation_id,str(statistics))
         elif (output_file.lower()=='csv'):
             output = io.BytesIO()
             w = csv.DictWriter(output, statistics.keys())
             w.writeheader()
             w.writerow(statistics)
-            my_api.WriteMessageToReservationOutput(str(output.getvalue()))
+            my_api.WriteMessageToReservationOutput(reservation_id,str(output.getvalue()))
 
 

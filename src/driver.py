@@ -3,7 +3,7 @@ from cloudshell.shell.core.resource_driver_interface import ResourceDriverInterf
 
 from stc_handler import StcHandler
 
-import json
+
 
 
 
@@ -11,6 +11,7 @@ class TestCenterControllerDriver(ResourceDriverInterface):
 
     def __init__(self):
         self.handler = StcHandler()
+
 
     def initialize(self, context):
         """
@@ -34,6 +35,7 @@ class TestCenterControllerDriver(ResourceDriverInterface):
         :type context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
         """
         self.handler.load_config(context, stc_config_file_name,get_data_from_config)
+        return ""
 
     def send_arp(self, context):
         """ Send ARP for all objects (ports, devices, streams)
@@ -49,6 +51,7 @@ class TestCenterControllerDriver(ResourceDriverInterface):
         :type context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
         """
         self.handler.start_devices(context)
+        return ""
 
     def stop_devices(self, context):
         """
@@ -77,6 +80,7 @@ class TestCenterControllerDriver(ResourceDriverInterface):
 
     def get_statistics(self,context,view_name, output_type):
         self.handler.get_statistics(context, view_name, output_type)
+        return ""
 
 
     def cleanup(self):
