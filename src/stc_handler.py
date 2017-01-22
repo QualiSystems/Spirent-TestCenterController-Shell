@@ -6,9 +6,11 @@ from cloudshell.shell.core.driver_context import AutoLoadDetails
 from testcenter.stc_app import StcApp
 from testcenter.api.stc_tcl import StcTclWrapper
 from cloudshell.shell.core.session.cloudshell_session import CloudShellSessionContext
-import re,json,csv,io
+import re
+import json
+import csv
+import io
 from testcenter.stc_statistics_view import StcStats
-import os, os.path
 
 
 class StcHandler(object):
@@ -18,10 +20,10 @@ class StcHandler(object):
         :type context: cloudshell.shell.core.driver_context.InitCommandContext
         """
 
-
         client_install_path = context.resource.attributes['Client Install Path']
         logging.basicConfig(filename='example.log', level=logging.DEBUG)
         self.logger = logging.getLogger('root')
+        self.logger.addHandler(logging.FileHandler('example.log'))
         self.logger.setLevel('DEBUG')
 
         self.stc = StcApp(self.logger, StcTclWrapper(self.logger, client_install_path))
@@ -29,7 +31,7 @@ class StcHandler(object):
         address = context.resource.address
         if address.lower() in ('na', 'localhost'):
             address = None
-        self.logger.info("connecting to address {0}".format(address))
+        self.logger.info("connecting to address {}".format(address))
         self.stc.connect(lab_server=address)
 
     def get_inventory(self, context):
@@ -54,10 +56,11 @@ class StcHandler(object):
         :param context: the context the command runs on
         :type context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
         """
+
         self.stc.load_config(stc_config_file_name)
         self.ports = self.stc.project.get_ports()
 
-        if not get_data_from_config:
+        if get_data_from_config.lower() == 'false':
             reservation_id = context.reservation.reservation_id
             my_api = self.get_api(context)
             response = my_api.GetReservationDetails(reservationId=reservation_id)
@@ -74,15 +77,15 @@ class StcHandler(object):
                     ports_obj.append(resource)
 
             ports_obj_dict = dict()
-
             for port in ports_obj:
                 if (chassis_obj.FullAddress in port.FullAddress):
                     val = my_api.GetAttributeValue(resourceFullPath=port.Name, attributeName="Logical Name").Value
                     if val:
                         port.logic_name = val
                         ports_obj_dict[val.lower().strip()] = port
-
-
+            if not ports_obj_dict:
+                self.logger.error("You should add logical name for ports")
+                raise Exception("You should add logical name for ports")
 
             for port_name, port in self.ports.items():
                 # 'physical location in the form ip/module/port'
@@ -90,24 +93,16 @@ class StcHandler(object):
                 if port_name in ports_obj_dict:
                     FullAddress = re.sub(r'PG.*?[^a-zA-Z0-9 ]', r'', ports_obj_dict[port_name].FullAddress)
                     physical_add = re.sub(r'[^./0-9 ]', r'', FullAddress)
-                    self.logger.info("Logical Port %s will be reserved now on Physical location %s"%(str(port_name),str(physical_add)))
-                    try:
-                        port.reserve(physical_add)
-                    except Exception as e:
-                        raise("Error: %s:"%(e))
-            if not ports_obj_dict:
-                self.logger.error("You should add logical name for ports")
-                raise Exception ("You should add logical name for ports")
+                    self.logger.info("Logical Port %s will be reserved now on Physical location %s" %
+                                     (str(port_name), str(physical_add)))
+                    port.reserve(physical_add)
+
         else:
             for port_name, port in self.ports.items():
                 # 'physical location in the form ip/module/port'
-                try:
-                    port.reserve(None)
-                except Exception as e:
-                    raise("Error: %s:"%(e))
+                port.reserve()
 
         self.logger.info("Port Reservation Completed")
-
 
     def send_arp(self, context):
         """
@@ -143,24 +138,22 @@ class StcHandler(object):
 
         self.stc.stop_traffic()
 
-    def get_statistics(self, context,view_name,output_type):
+    def get_statistics(self, context, view_name, output_type):
         output_file = output_type.lower().strip()
-        if (output_file!='json' and output_file!='csv'):
+        if output_file != 'json' and output_file != 'csv':
             raise Exception("The output format should be json or csv")
         gen_stats = StcStats(view_name)
         gen_stats.read_stats()
-        statistics =  gen_stats.statistics
+        statistics = gen_stats.statistics
         reservation_id = context.reservation.reservation_id
         my_api = self.get_api(context)
-        if(output_file.lower()=='json'):
+        if output_file.lower() == 'json':
             statistics = json.dumps(statistics, ensure_ascii=False)
-            #print statistics
-            my_api.WriteMessageToReservationOutput(reservation_id,str(statistics))
-        elif (output_file.lower()=='csv'):
+            # print statistics
+            my_api.WriteMessageToReservationOutput(reservation_id, str(statistics))
+        elif output_file.lower() == 'csv':
             output = io.BytesIO()
             w = csv.DictWriter(output, statistics.keys())
             w.writeheader()
             w.writerow(statistics)
-            my_api.WriteMessageToReservationOutput(reservation_id,str(output.getvalue()))
-
-
+            my_api.WriteMessageToReservationOutput(reservation_id, str(output.getvalue()))
