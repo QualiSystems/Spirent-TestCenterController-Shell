@@ -4,7 +4,7 @@
 		<Command Name="load_config" DisplayName="Load configuration" Description="Reserve ports and load configuration" >
 	    	<Parameters>
             	<Parameter Name="stc_config_file_name" Type="String" Mandatory="True"
-                           DisplayName="STC configi file name" Description="Full path to STC configuration file name - tcc or xml" />
+                           DisplayName="STC config file name" Description="Full path to STC configuration file name - tcc or xml" />
                 <Parameter Name="get_data_from_config" Type="String" Mandatory="True"
                            DisplayName="Get Ports From Config" DefaultValue="False" Description="Flag indicates that we should read the ports from configuration file" />
             </Parameters>
@@ -14,6 +14,14 @@
 		<Command Name="start_devices" DisplayName="Start All Devices" Description="Start all emulations on all devices" >
         </Command>
 		<Command Name="stop_devices" DisplayName="Stop All Devices" Description="Stop all emulations on all devices" >
+        </Command>
+        <Command Name="get_statistics" DisplayName="Get Statistics" Description="Get all the ports statistics" >
+         <Parameters>
+            	<Parameter Name="view_name" Type="String" Mandatory="True"
+                           DisplayName="View Name" Description="" />
+                <Parameter Name="output_type" Type="String" Mandatory="True"
+                           DisplayName="Output Type" DefaultValue="" Description="CSV or JSON" />
+            </Parameters>
         </Command>
 
     </Layout>
