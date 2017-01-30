@@ -15,6 +15,8 @@
         </Command>
 		<Command Name="stop_devices" DisplayName="Stop All Devices" Description="Stop all emulations on all devices" >
         </Command>
+        <Command Name="start_traffic" DisplayName="Start Traffic" Description=""></Command>
+        <Command Name="stop_traffic" DisplayName="Stop Traffic" Description=""></Command>
         <Command Name="get_statistics" DisplayName="Get Statistics" Description="Get all the ports statistics" >
          <Parameters>
             	<Parameter Name="view_name" Type="String" Mandatory="True"

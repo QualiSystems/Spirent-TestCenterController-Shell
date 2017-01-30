@@ -63,7 +63,7 @@ class TestCenterControllerDriver(ResourceDriverInterface):
         :type context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
         """
 
-        self.handler.stop_devices()
+        self.handler.stop_devices(context)
 
     def start_traffic(self, context):
         """
