@@ -9,13 +9,14 @@ class TestCenterControllerDriver(ResourceDriverInterface):
     def __init__(self):
         self.handler = StcHandler()
 
+
     def initialize(self, context):
         """
         :param context: ResourceCommandContext,ReservationContextDetailsobject with all Resource Attributes inside
         :type context:  context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
         """
-
         self.handler.initialize(context)
+
 
     def get_inventory(self, context):
         """ Return device structure with all standard attributes
@@ -85,4 +86,4 @@ class TestCenterControllerDriver(ResourceDriverInterface):
         return ""
 
     def cleanup(self):
-        pass
+        self.handler.tearDown()

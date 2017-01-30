@@ -4,6 +4,7 @@ import logging
 from cloudshell.shell.core.driver_context import AutoLoadDetails
 
 from testcenter.stc_app import StcApp
+from trafficgenerator.tgn_tcl import TgnTkMultithread
 from testcenter.api.stc_tcl import StcTclWrapper
 from cloudshell.shell.core.session.cloudshell_session import CloudShellSessionContext
 import re
@@ -26,13 +27,20 @@ class StcHandler(object):
         self.logger.addHandler(logging.FileHandler('example.log'))
         self.logger.setLevel('DEBUG')
 
-        self.stc = StcApp(self.logger, StcTclWrapper(self.logger, client_install_path))
+        self.tcl_interp = TgnTkMultithread()
+        self.tcl_interp.start()
+        api_wrapper = StcTclWrapper(self.logger, client_install_path, self.tcl_interp)
+
+        self.stc = StcApp(self.logger, api_wrapper)
 
         address = context.resource.address
         if address.lower() in ('na', 'localhost'):
             address = None
         self.logger.info("connecting to address {}".format(address))
         self.stc.connect(lab_server=address)
+
+    def tearDown(self):
+        self.tcl_interp.stop()
 
     def get_inventory(self, context):
         """

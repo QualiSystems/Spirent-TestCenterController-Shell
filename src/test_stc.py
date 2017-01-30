@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from cloudshell.shell.core.context import ResourceCommandContext, ResourceContextDetails, ReservationContextDetails,ConnectivityContext
 from driver import TestCenterControllerDriver
+import thread
 
 
 
@@ -10,7 +11,7 @@ def create_context():
     context.resource = ResourceContextDetails()
     context.resource.name = 'TestCenter Controller 111'
     context.reservation = ReservationContextDetails()
-    context.reservation.reservation_id = '8beee712-0914-47a5-a765-e92e7bdc6171'
+    context.reservation.reservation_id = 'cb2465bb-e981-47b2-9390-5837fab5a35d'
     context.reservation.owner_user = 'admin'
     context.reservation.owner_email = 'fake@qualisystems.com'
     context.reservation.environment_path ='config1'
@@ -93,7 +94,10 @@ request = """{
 }"""
 
 
+
+
 if __name__ == '__main__':
+    import time
     import threading
     context = create_context()
     driver = TestCenterControllerDriver()
@@ -112,24 +116,36 @@ if __name__ == '__main__':
     #response = driver.save(context, 'tftp://172.19.107.44/test', 'startup')
     #response = driver.restore(context, 'cfcard:/config_backup/vrpcfg.zip', 'startup', 'override')
     #res = driver.ApplyConnectivityChanges(context, request)
-    threading.Thread(target=driver.load_config, args=[context,"C:\Users\luiza.n\Documents\configurationtest1.tcc",False]).start()
-    threading.Thread(target=driver.send_arp, args=[context]).start()
-    threading.Thread(target=driver.send_arp, args=[context]).start()
-    threading.Thread(target=driver.get_statistics, args=[context,'generatorportresults', "json"]).start()
+    t1 = threading.Thread(target=driver.load_config, args=[context,"C:\Users\luiza.n\Documents\configurationtest1.tcc","False"])
+    t2 = threading.Thread(target=driver.send_arp, args=[context])
+    t3 = threading.Thread(target=driver.send_arp, args=[context])
+    t1.start()
+
+    t2.start()
+    t3.start()
+    t1.join()
+    t2.join()
+
+    t3.join()
 
 
+    #t3 = threading.Thread(target=driver.send_arp, args=[context]).start()
 
-    #response = driver.load_config(context,"C:\Users\luiza.n\Documents\configurationtest1.tcc",False)
-    #response = driver.start_devices(context)
-    #response = driver.send_arp(context)
-    #response = driver.send_arp(context)
-    #driver.start_traffic(context)
-    #driver.get_statistics(context,'generatorportresults', "json")
+    #threading.Thread(target=driver.get_statistics, args=[context,'generatorportresults', "json"]).start()
+
+
+    '''
+    response = driver.load_config(context,"C:\Users\luiza.n\Documents\configurationtest1.tcc","False")
+    response = driver.start_devices(context)
+    response = driver.send_arp(context)
+    response = driver.send_arp(context)
+    driver.start_traffic(context)
+    driver.get_statistics(context,'generatorportresults', "json")
     #print response
     #res=driver.update_firmware(context,'1.1.1.1','flash:/config_backup/')
     #print driver.send_custom_command(context, "display version")
     # print response
-
+    '''
 
 '''context:
 
