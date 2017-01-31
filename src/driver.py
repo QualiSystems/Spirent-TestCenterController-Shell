@@ -105,7 +105,8 @@ class TestCenterControllerDriver(ResourceDriverInterface):
         while not cancellation_context.is_cancelled:
             pass
         if cancellation_context.is_cancelled:
-           sys.exit(0)
+            self.handler.tearDown()
+            sys.exit(0)
 
 
 
