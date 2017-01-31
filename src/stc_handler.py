@@ -1,6 +1,6 @@
 
 import logging
-
+import sys
 from cloudshell.shell.core.driver_context import AutoLoadDetails
 
 from testcenter.stc_app import StcApp
@@ -149,11 +149,6 @@ class StcHandler(object):
 
         self.stc.stop_traffic()
 
-    def _csv2string(self,data):
-        si = io.BytesIO()
-        cw = csv.writer(si)
-        cw.writerow(data)
-        return si.getvalue().strip('\r\n')
 
     def get_statistics(self, context, view_name, output_type):
         output_file = output_type.lower().strip()
@@ -175,3 +170,5 @@ class StcHandler(object):
             w.writerow(statistics)
 
             my_api.WriteMessageToReservationOutput(reservation_id,output.getvalue().strip('\r\n'))
+
+
