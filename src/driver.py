@@ -96,9 +96,9 @@ class TestCenterControllerDriver(ResourceDriverInterface):
         return ""
 
     def cleanup(self):
-
+        self.handler.tearDown()
         pass
-        #self.handler.tearDown()
+
 
     def keep_alive(self, context, cancellation_context):
 
@@ -106,7 +106,7 @@ class TestCenterControllerDriver(ResourceDriverInterface):
             pass
         if cancellation_context.is_cancelled:
             self.handler.tearDown()
-            sys.exit(0)
+
 
 
 
