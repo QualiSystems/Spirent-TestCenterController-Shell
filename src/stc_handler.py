@@ -135,12 +135,12 @@ class StcHandler(object):
 
         self.stc.stop_devices()
 
-    def start_traffic(self, context):
+    def start_traffic(self, context,blocking):
         """
         :type context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
         """
-
-        self.stc.start_traffic()
+        blocking = bool(blocking) if blocking in ["true", "True"] else False
+        self.stc.start_traffic(blocking)
 
     def stop_traffic(self, context):
         """

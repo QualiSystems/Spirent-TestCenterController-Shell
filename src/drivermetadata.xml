@@ -18,7 +18,12 @@
         </Command>
 		<Command Name="stop_devices" DisplayName="Stop All Devices" Description="Stop all emulations on all devices" >
         </Command>
-        <Command Name="start_traffic" DisplayName="Start Traffic" Description=""></Command>
+        <Command Name="start_traffic" DisplayName="Start Traffic" Description="">
+            <Parameters>
+            	<Parameter Name="blocking" Type="String" Mandatory="False" DefaultValue="False"
+                           DisplayName="Block the command until all the traffic finish to run" Description="" />
+            </Parameters>
+        </Command>
         <Command Name="stop_traffic" DisplayName="Stop Traffic" Description=""></Command>
         <Command Name="get_statistics" DisplayName="Get Statistics" Description="Get all the ports statistics" >
          <Parameters>
