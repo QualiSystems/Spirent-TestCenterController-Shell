@@ -78,18 +78,21 @@ class StcHandler(object):
 
             search_chassis = "Traffic Generator Chassis"
             search_port = "Port"
-            chassis_obj = None
+            chassis_objs_dict = dict()
             ports_obj = []
 
             for resource in response.ReservationDescription.Resources:
                 if resource.ResourceFamilyName == search_chassis:
-                    chassis_obj = resource
+                    chassis_objs_dict[resource.FullAddress] = {'chassis':resource,'ports':list()}
+            for resource in response.ReservationDescription.Resources:
                 if resource.ResourceFamilyName == search_port:
-                    ports_obj.append(resource)
+                        chassis_adr = resource.FullAddress.split('/')[0]
+                        if chassis_adr in chassis_objs_dict:
+                            chassis_objs_dict[chassis_adr]['ports'].append(resource)
+                            ports_obj.append(resource)
 
             ports_obj_dict = dict()
             for port in ports_obj:
-                if (chassis_obj.FullAddress in port.FullAddress):
                     val = my_api.GetAttributeValue(resourceFullPath=port.Name, attributeName="Logical Name").Value
                     if val:
                         port.logic_name = val
@@ -106,12 +109,12 @@ class StcHandler(object):
                     physical_add = re.sub(r'[^./0-9 ]', r'', FullAddress)
                     self.logger.info("Logical Port %s will be reserved now on Physical location %s" %
                                      (str(port_name), str(physical_add)))
-                    port.reserve(physical_add,force=True)
+                    port.reserve(physical_add,force=True,wait_for_up=False)
 
         else:
             for port_name, port in self.ports.items():
                 # 'physical location in the form ip/module/port'
-                port.reserve(force=True)
+                port.reserve(force=True,wait_for_up=False)
 
         self.logger.info("Port Reservation Completed")
 

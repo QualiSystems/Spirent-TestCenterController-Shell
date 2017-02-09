@@ -9,9 +9,9 @@ import thread
 def create_context():
     context = ResourceCommandContext()
     context.resource = ResourceContextDetails()
-    context.resource.name = 'TestCenter Controller 111'
+    context.resource.name = 'TestCenter Controller 1'
     context.reservation = ReservationContextDetails()
-    context.reservation.reservation_id = 'cb2465bb-e981-47b2-9390-5837fab5a35d'
+    context.reservation.reservation_id = 'bc3aa7d1-7d66-4365-b419-65b90ece4d0f'
     context.reservation.owner_user = 'admin'
     context.reservation.owner_email = 'fake@qualisystems.com'
     context.reservation.environment_path ='config1'
@@ -116,17 +116,7 @@ if __name__ == '__main__':
     #response = driver.save(context, 'tftp://172.19.107.44/test', 'startup')
     #response = driver.restore(context, 'cfcard:/config_backup/vrpcfg.zip', 'startup', 'override')
     #res = driver.ApplyConnectivityChanges(context, request)
-    t1 = threading.Thread(target=driver.load_config, args=[context,"C:\Users\luiza.n\Documents\configurationtest1.tcc","False"])
-    t2 = threading.Thread(target=driver.send_arp, args=[context])
-    t3 = threading.Thread(target=driver.send_arp, args=[context])
-    t1.start()
 
-    t2.start()
-    t3.start()
-    t1.join()
-    t2.join()
-
-    t3.join()
 
 
     #t3 = threading.Thread(target=driver.send_arp, args=[context]).start()
@@ -134,18 +124,25 @@ if __name__ == '__main__':
     #threading.Thread(target=driver.get_statistics, args=[context,'generatorportresults', "json"]).start()
 
 
-    '''
+
     response = driver.load_config(context,"C:\Users\luiza.n\Documents\configurationtest1.tcc","False")
+    print "1"
     response = driver.start_devices(context)
-    response = driver.send_arp(context)
-    response = driver.send_arp(context)
+    print "2"
     driver.start_traffic(context)
+    print "5"
+    response = driver.send_arp(context)
+    print "3"
+    response = driver.send_arp(context)
+    print "4"
+
     driver.get_statistics(context,'generatorportresults', "json")
+    print "5"
     #print response
     #res=driver.update_firmware(context,'1.1.1.1','flash:/config_backup/')
     #print driver.send_custom_command(context, "display version")
     # print response
-    '''
+
 
 '''context:
 
