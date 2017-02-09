@@ -67,56 +67,59 @@ class StcHandler(object):
         :param context: the context the command runs on
         :type context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
         """
+        try:
+            self.stc.load_config(stc_config_file_name)
+            self.ports = self.stc.project.get_ports()
 
-        self.stc.load_config(stc_config_file_name)
-        self.ports = self.stc.project.get_ports()
+            if get_data_from_config.lower() == 'false':
+                reservation_id = context.reservation.reservation_id
+                my_api = self.get_api(context)
+                response = my_api.GetReservationDetails(reservationId=reservation_id)
 
-        if get_data_from_config.lower() == 'false':
-            reservation_id = context.reservation.reservation_id
-            my_api = self.get_api(context)
-            response = my_api.GetReservationDetails(reservationId=reservation_id)
+                search_chassis = "Traffic Generator Chassis"
+                search_port = "Port"
+                chassis_objs_dict = dict()
+                ports_obj = []
 
-            search_chassis = "Traffic Generator Chassis"
-            search_port = "Port"
-            chassis_objs_dict = dict()
-            ports_obj = []
+                for resource in response.ReservationDescription.Resources:
+                    if resource.ResourceFamilyName == search_chassis:
+                        chassis_objs_dict[resource.FullAddress] = {'chassis':resource,'ports':list()}
+                for resource in response.ReservationDescription.Resources:
+                    if resource.ResourceFamilyName == search_port:
+                            chassis_adr = resource.FullAddress.split('/')[0]
+                            if chassis_adr in chassis_objs_dict:
+                                chassis_objs_dict[chassis_adr]['ports'].append(resource)
+                                ports_obj.append(resource)
 
-            for resource in response.ReservationDescription.Resources:
-                if resource.ResourceFamilyName == search_chassis:
-                    chassis_objs_dict[resource.FullAddress] = {'chassis':resource,'ports':list()}
-            for resource in response.ReservationDescription.Resources:
-                if resource.ResourceFamilyName == search_port:
-                        chassis_adr = resource.FullAddress.split('/')[0]
-                        if chassis_adr in chassis_objs_dict:
-                            chassis_objs_dict[chassis_adr]['ports'].append(resource)
-                            ports_obj.append(resource)
+                ports_obj_dict = dict()
+                for port in ports_obj:
+                        val = my_api.GetAttributeValue(resourceFullPath=port.Name, attributeName="Logical Name").Value
+                        if val:
+                            port.logic_name = val
+                            ports_obj_dict[val.lower().strip()] = port
+                if not ports_obj_dict:
+                    self.logger.error("You should add logical name for ports")
+                    raise Exception("You should add logical name for ports")
 
-            ports_obj_dict = dict()
-            for port in ports_obj:
-                    val = my_api.GetAttributeValue(resourceFullPath=port.Name, attributeName="Logical Name").Value
-                    if val:
-                        port.logic_name = val
-                        ports_obj_dict[val.lower().strip()] = port
-            if not ports_obj_dict:
-                self.logger.error("You should add logical name for ports")
-                raise Exception("You should add logical name for ports")
+                for port_name, port in self.ports.items():
+                    # 'physical location in the form ip/module/port'
+                    port_name = port_name.lower().strip()
+                    if port_name in ports_obj_dict:
+                        FullAddress = re.sub(r'PG.*?[^a-zA-Z0-9 ]', r'', ports_obj_dict[port_name].FullAddress)
+                        physical_add = re.sub(r'[^./0-9 ]', r'', FullAddress)
+                        self.logger.info("Logical Port %s will be reserved now on Physical location %s" %
+                                         (str(port_name), str(physical_add)))
+                        port.reserve(physical_add,force=True,wait_for_up=False)
 
-            for port_name, port in self.ports.items():
-                # 'physical location in the form ip/module/port'
-                port_name = port_name.lower().strip()
-                if port_name in ports_obj_dict:
-                    FullAddress = re.sub(r'PG.*?[^a-zA-Z0-9 ]', r'', ports_obj_dict[port_name].FullAddress)
-                    physical_add = re.sub(r'[^./0-9 ]', r'', FullAddress)
-                    self.logger.info("Logical Port %s will be reserved now on Physical location %s" %
-                                     (str(port_name), str(physical_add)))
-                    port.reserve(physical_add,force=True,wait_for_up=False)
+            else:
+                for port_name, port in self.ports.items():
+                    # 'physical location in the form ip/module/port'
+                    port.reserve(force=True,wait_for_up=False)
 
-        else:
-            for port_name, port in self.ports.items():
-                # 'physical location in the form ip/module/port'
-                port.reserve(force=True,wait_for_up=False)
-
-        self.logger.info("Port Reservation Completed")
+            self.logger.info("Port Reservation Completed")
+        except Exception as e:
+            self.tearDown()
+            self.logger.error("Port Reservation Failed " + str(e))
 
     def send_arp(self, context):
         """
