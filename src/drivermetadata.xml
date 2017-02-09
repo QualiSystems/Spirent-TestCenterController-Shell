@@ -21,8 +21,8 @@
         </Command>
         <Command Name="start_traffic" DisplayName="Start Traffic" Description="">
             <Parameters>
-            	<Parameter Name="blocking" Type="String" Mandatory="False" DefaultValue="False"
-                           DisplayName="Block the command until all the traffic finish to run" Description="" />
+               <Parameter Name="blocking" Type="Lookup" Mandatory = "False" AllowedValues="True,False"
+                               DisplayName="Block" Description="Block the command until all the traffic finish to run" DefaultValue="False"/>
             </Parameters>
         </Command>
         <Command Name="stop_traffic" DisplayName="Stop Traffic" Description=""></Command>
