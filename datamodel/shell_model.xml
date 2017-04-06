@@ -1,0 +1,23 @@
+<Shell>
+
+    <ShellAttributes>
+    </ShellAttributes>
+
+    <ShellModel Family="Traffic Generator Controller">
+        <ResourceModel Name="TestCenter Controller" Description="Spirent TestCenter (STC) controller" SupportsConcurrentCommands="true">
+			<AttachedAttributes>
+
+        		<AttachedAttribute Name="Client Install Path" IsOverridable="true" IsLocal="true">
+            		<AllowedValues />
+          		</AttachedAttribute>
+        		<AttachedAttribute Name="Controller TCP Port" IsOverridable="true" IsLocal="true">
+            		<AllowedValues />
+          		</AttachedAttribute>
+			</AttachedAttributes>
+            <Drivers>
+                <DriverName>TestCenterControllerDriver</DriverName>
+            </Drivers>			
+        </ResourceModel>
+    </ShellModel>
+
+</Shell>
