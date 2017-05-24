@@ -1,180 +1,115 @@
 
-import logging
-import sys
-from cloudshell.shell.core.driver_context import AutoLoadDetails
-
-from testcenter.stc_app import StcApp
-from trafficgenerator.tgn_tcl import TgnTkMultithread
-from testcenter.api.stc_tcl import StcTclWrapper
-from cloudshell.shell.core.session.cloudshell_session import CloudShellSessionContext
 import re
 import json
 import csv
 import io
+from collections import OrderedDict
+
+from cloudshell.shell.core.session.cloudshell_session import CloudShellSessionContext
+
+from trafficgenerator.tgn_tcl import TgnTkMultithread
+from testcenter.stc_app import StcApp
+from testcenter.api.stc_tcl import StcTclWrapper
 from testcenter.stc_statistics_view import StcStats
-import os
+
+import tg_helper
 
 
 class StcHandler(object):
 
-    def initialize(self, context):
+    def initialize(self, client_install_path, lab_server=''):
         """
-        :type context: cloudshell.shell.core.driver_context.InitCommandContext
+        :param client_install_path: full path to STC client installation directory (up to, including, version number)
+        :param lab_server: lab server address (if required)
         """
-        curr_dir = os.getcwd()
-        log_dir = curr_dir+'/Logs'
-        log_file = 'STC_logger.log'
-        client_install_path = context.resource.attributes['Client Install Path']
-        logging.basicConfig(filename= log_file, level=logging.DEBUG)
-        self.logger = logging.getLogger('root')
-        self.logger.addHandler(logging.FileHandler(log_file))
-        self.logger.setLevel('DEBUG')
+
+        self.logger = tg_helper.create_logger('c:/temp/stc_controller_logger.txt')
 
         self.tcl_interp = TgnTkMultithread()
         self.tcl_interp.start()
+        self.logger.debug('client_install_path = ' + client_install_path)
         api_wrapper = StcTclWrapper(self.logger, client_install_path, self.tcl_interp)
-
         self.stc = StcApp(self.logger, api_wrapper)
 
-        address = context.resource.address
-        if address.lower() in ('na', 'localhost'):
-            address = None
-        self.logger.info("connecting to address {}".format(address))
-        self.stc.connect(lab_server=address)
+        if lab_server:
+            self.logger.info("connecting to lab server {}".format(lab_server))
+        self.stc.connect(lab_server=lab_server)
 
     def tearDown(self):
         self.tcl_interp.stop()
 
-    def get_inventory(self, context):
+    def load_config(self, context, stc_config_file_name):
         """
-        :type context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
-        """
-
-        return AutoLoadDetails([], [])
-
-    def get_api(self, context):
+        :param stc_config_file_name: full path to STC configuration file (tcc or xml)
         """
 
-        :param context:
-        :return:
-        """
+        self.stc.load_config(stc_config_file_name)
+        config_ports = self.stc.project.get_ports()
 
-        return CloudShellSessionContext(context).get_api()
+        reservation_id = context.reservation.reservation_id
+        my_api = CloudShellSessionContext(context).get_api()
 
-    def load_config(self, context, stc_config_file_name, get_data_from_config=False):
-        """
-        :param str stc_config_file_name: full path to STC configuration file (tcc or xml)
-        :param context: the context the command runs on
-        :type context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
-        """
-        try:
-            self.stc.load_config(stc_config_file_name)
-            self.ports = self.stc.project.get_ports()
+        reservation_ports = {}
+        for port in tg_helper.get_reservation_ports(my_api, reservation_id):
+            reservation_ports[my_api.GetAttributeValue(port.Name, 'Logical Name').Value.strip()] = port
 
-            if get_data_from_config.lower() == 'false':
-                reservation_id = context.reservation.reservation_id
-                my_api = self.get_api(context)
-                response = my_api.GetReservationDetails(reservationId=reservation_id)
-
-                search_chassis = "Traffic Generator Chassis"
-                search_port = "Port"
-                chassis_objs_dict = dict()
-                ports_obj = []
-
-                for resource in response.ReservationDescription.Resources:
-                    if resource.ResourceFamilyName == search_chassis:
-                        chassis_objs_dict[resource.FullAddress] = {'chassis':resource,'ports':list()}
-                for resource in response.ReservationDescription.Resources:
-                    if resource.ResourceFamilyName == search_port:
-                            chassis_adr = resource.FullAddress.split('/')[0]
-                            if chassis_adr in chassis_objs_dict:
-                                chassis_objs_dict[chassis_adr]['ports'].append(resource)
-                                ports_obj.append(resource)
-
-                ports_obj_dict = dict()
-                for port in ports_obj:
-                        val = my_api.GetAttributeValue(resourceFullPath=port.Name, attributeName="Logical Name").Value
-                        if val:
-                            port.logic_name = val
-                            ports_obj_dict[val.lower().strip()] = port
-                if not ports_obj_dict:
-                    self.logger.error("You should add logical name for ports")
-                    raise Exception("You should add logical name for ports")
-
-                for port_name, port in self.ports.items():
-                    # 'physical location in the form ip/module/port'
-                    port_name = port_name.lower().strip()
-                    if port_name in ports_obj_dict:
-                        FullAddress = re.sub(r'PG.*?[^a-zA-Z0-9 ]', r'', ports_obj_dict[port_name].FullAddress)
-                        physical_add = re.sub(r'[^./0-9 ]', r'', FullAddress)
-                        self.logger.info("Logical Port %s will be reserved now on Physical location %s" %
-                                         (str(port_name), str(physical_add)))
-                        port.reserve(physical_add,force=True,wait_for_up=False)
-
+        for name, port in config_ports.items():
+            if name in reservation_ports:
+                address = re.sub('M|PG[0-9]+\/|P', '', reservation_ports[name].FullAddress)
+                self.logger.debug('Logical Port {} will be reserved on Physical location {}'.format(name, address))
+                port.reserve(address, force=True, wait_for_up=False)
             else:
-                for port_name, port in self.ports.items():
-                    # 'physical location in the form ip/module/port'
-                    port.reserve(force=True,wait_for_up=False)
+                self.logger.error('Configuration port "{}" not found in reservation ports {}'.
+                                  format(port, reservation_ports.keys()))
+                raise Exception('Configuration port "{}" not found in reservation ports {}'.
+                                format(port, reservation_ports.keys()))
 
-            self.logger.info("Port Reservation Completed")
-        except Exception as e:
-            self.tearDown()
-            self.logger.error("Port Reservation Failed " + str(e))
+        self.logger.info("Port Reservation Completed")
 
-    def send_arp(self, context):
-        """
-        :type context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
-        """
+    def send_arp(self):
         self.stc.send_arp_ns()
 
-    def start_devices(self, context):
-        """
-        :type context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
-        """
-
+    def start_devices(self):
         self.stc.start_devices()
 
-    def stop_devices(self, context):
-        """
-        :type context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
-        """
-
+    def stop_devices(self):
         self.stc.stop_devices()
 
-    def start_traffic(self, context,blocking):
+    def start_traffic(self, blocking):
         """
-        :type context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
+        :param blocking: "True"/"False" - whether to run traffic in blocking mode or not.
         """
-        blocking = bool(blocking) if blocking in ["true", "True"] else False
-        self.stc.start_traffic(blocking)
+        self.stc.start_traffic(tg_helper.is_blocking(blocking))
 
-    def stop_traffic(self, context):
-        """
-        :type context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
-        """
-
+    def stop_traffic(self):
         self.stc.stop_traffic()
 
-
     def get_statistics(self, context, view_name, output_type):
-        output_file = output_type.lower().strip()
-        if output_file != 'json' and output_file != 'csv':
-            raise Exception("The output format should be json or csv")
-        gen_stats = StcStats(view_name)
-        gen_stats.read_stats()
-        statistics = gen_stats.statistics
-        reservation_id = context.reservation.reservation_id
-        my_api = self.get_api(context)
-        if output_file.lower() == 'json':
-            statistics = json.dumps(statistics, indent=4, sort_keys=True,ensure_ascii=False)
-            # print statistics
-            my_api.WriteMessageToReservationOutput(reservation_id, statistics)
-        elif output_file.lower() == 'csv':
+        """
+        :param view_name: name of statistics view.
+        :param output_type: "JSON"/"CSV"
+        """
+
+        stats_obj = StcStats(view_name)
+        stats_obj.read_stats()
+        statistics_ = stats_obj.statistics
+
+        if output_type.strip().lower() == 'json':
+            statistics_str = json.dumps(statistics_, indent=4, sort_keys=True, ensure_ascii=False)
+            return json.loads(statistics_str)
+        elif output_type.strip().lower() == 'csv':
+
+            statistics = OrderedDict()
+            for obj_name in statistics_['topLevelName']:
+                statistics[obj_name] = stats_obj.get_object_stats(obj_name)
+            captions = statistics[statistics_['topLevelName'][0]].keys()
+
             output = io.BytesIO()
-            w = csv.DictWriter(output, statistics.keys())
+            w = csv.DictWriter(output, captions)
             w.writeheader()
-            w.writerow(statistics)
-
-            my_api.WriteMessageToReservationOutput(reservation_id,output.getvalue().strip('\r\n'))
-
-
+            for obj_name in statistics:
+                w.writerow(statistics[obj_name])
+            tg_helper.attach_stats_csv(context, self.logger, view_name, output)
+            return output.getvalue().strip('\r\n')
+        else:
+            raise Exception('Output type should be CSV/JSON - got {}'.format(output_type))

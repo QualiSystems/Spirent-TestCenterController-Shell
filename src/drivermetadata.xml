@@ -1,37 +1,42 @@
-<Driver Description="Shell to setup and run STC traffic" MainClass="driver.TestCenterControllerDriver" Name="TestCenterControllerDriver" Version="1.0.0">
+<Driver Description="Shell to setup and run STC traffic" MainClass="driver.TestCenterControllerDriver" Name="TestCenterControllerDriver" Version="1.1.0">
     <Layout>
          <Category Name="Hidden Commands">
             <Command Name="keep_alive" DisplayName="Keep Alive" Tags="" Description="" EnableCancellation="true"/>
         </Category>
 
-		<Command Name="load_config" DisplayName="Load configuration" Description="Reserve ports and load configuration" >
+		<Command Name="load_config" DisplayName="Load configuration"
+				 Description="Reserve ports and load configuration" >
 	    	<Parameters>
-            	<Parameter Name="stc_config_file_name" Type="String" Mandatory="True"
-                           DisplayName="STC config file name" Description="Full path to STC configuration file name - tcc or xml" />
-               <Parameter Name="get_data_from_config" Type="Lookup" Mandatory = "True" AllowedValues="True,False"
-                               DisplayName="Get Ports From Config" Description="Flag indicates that we should read the ports from configuration file" DefaultValue="False"/>
-
+            	<Parameter Name="stc_config_file_name" DisplayName="STC config file name" Type="String" Mandatory="True"
+                           Description="Full path to STC configuration file name - tcc or xml" />
             </Parameters>
         </Command>
-		<Command Name="send_arp" DisplayName="Start ARP/ND" Description="Send ARP/ND for all devices and streams" >
+		<Command Name="send_arp" DisplayName="Start ARP/ND"
+				 Description="Send ARP/ND for all devices and streams" >
         </Command>
-		<Command Name="start_devices" DisplayName="Start All Devices" Description="Start all emulations on all devices" >
+		<Command Name="start_devices" DisplayName="Start All Devices"
+				 Description="Start all emulations on all devices" >
         </Command>
-		<Command Name="stop_devices" DisplayName="Stop All Devices" Description="Stop all emulations on all devices" >
+		<Command Name="stop_devices" DisplayName="Stop All Devices"
+				 Description="Stop all emulations on all devices" >
         </Command>
-        <Command Name="start_traffic" DisplayName="Start Traffic" Description="">
+        <Command Name="start_traffic" DisplayName="Start Traffic"
+        		 Description="Start traffic on all ports">
             <Parameters>
-               <Parameter Name="blocking" Type="Lookup" Mandatory = "False" AllowedValues="True,False"
-                               DisplayName="Block" Description="Block the command until all the traffic finish to run" DefaultValue="False"/>
+            	<Parameter Name="blocking" DisplayName="Blocking" Type="Lookup" Mandatory="True" AllowedValues="True,False" DefaultValue="False"
+                           Description="True - return after traffic finish to run, False - return immediately" />
             </Parameters>
         </Command>
-        <Command Name="stop_traffic" DisplayName="Stop Traffic" Description=""></Command>
-        <Command Name="get_statistics" DisplayName="Get Statistics" Description="Get all the ports statistics" >
+        <Command Name="stop_traffic" DisplayName="Stop Traffic"
+        		 Description="Stop traffic on all ports">
+       	</Command>
+        <Command Name="get_statistics" DisplayName="Get Statistics"
+        		 Description="Get view statistics" >
          <Parameters>
-            	<Parameter Name="view_name" Type="String" Mandatory="True"
-                           DisplayName="View Name" Description="" />
-                <Parameter Name="output_type" Type="String" Mandatory="True"
-                           DisplayName="Output Type" DefaultValue="" Description="CSV or JSON" />
+            	<Parameter Name="view_name" DisplayName="View Name" Type="String" Mandatory="True" DefaultValue=""
+                           Description="generatorPortResults, analyzerPortResults etc." />
+                <Parameter Name="output_type" DisplayName="Output Type" Type="Lookup" Mandatory="True" AllowedValues="CSV,JSON" DefaultValue="CSV"
+                		   Description="CSV or JSON" />
             </Parameters>
         </Command>
 

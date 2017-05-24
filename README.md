@@ -1,2 +1,2 @@
 # Spirent-TestCenterController-Shell
-A cloudshell shell to enable work with TestCenter
+A Quali CloudShell shell to enable work with Spirent TestCenter (STC).
