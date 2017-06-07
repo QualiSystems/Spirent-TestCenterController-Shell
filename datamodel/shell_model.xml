@@ -12,9 +12,6 @@
         		<AttachedAttribute Name="Controller Address" IsOverridable="true" IsLocal="true" UserInput="true">
             		<AllowedValues />
           		</AttachedAttribute>
-        		<AttachedAttribute Name="Controller TCP Port" IsOverridable="true" IsLocal="true" UserInput="true">
-            		<AllowedValues />
-          		</AttachedAttribute>
 			</AttachedAttributes>
             <Drivers>
                 <DriverName>TestCenterControllerDriver</DriverName>

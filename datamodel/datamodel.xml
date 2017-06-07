@@ -2,11 +2,12 @@
 <DataModelInfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.qualisystems.com/ResourceManagement/DataModelSchema.xsd">
 
 	<Attributes>
-    	<AttributeInfo Name="Client Install Path" Type="String" DefaultValue="" IsReadOnly="false" Description="The path in which the traffic client is installed on the Execution Server. For example 'C:/Program Files (x86)/Ixia/IxOS/6.90-EA'.">
+    	<AttributeInfo Name="Client Install Path" Type="String" DefaultValue="" IsReadOnly="false"
+    				   Description="The path in which the traffic client is installed on the Execution Server. For example 'C:/Program Files (x86)/Ixia/IxOS/6.90-EA'.">
       		<Rules>
         		<Rule Name="Configuration" />
       		</Rules>
-    	</AttributeInfo>  	
+    	</AttributeInfo>
     	<AttributeInfo Name="Controller Address" Type="String" DefaultValue="" IsReadOnly="false"
     				   Description="The IP address of the traffic server. Relevant only in case an external server is configured.">
       		<Rules>
@@ -18,7 +19,19 @@
       		<Rules>
         		<Rule Name="Configuration" />
       		</Rules>
-    	</AttributeInfo>  	
+    	</AttributeInfo>
+        <AttributeInfo Name="Password" Type="Password" DefaultValue="" IsReadOnly="false"
+         			   Description="">
+            <Rules>
+                <Rule Name="Configuration"/>
+            </Rules>
+        </AttributeInfo>
+        <AttributeInfo Name="User" Type="String" DefaultValue="" IsReadOnly="false"
+         			   Description="">
+            <Rules>
+                <Rule Name="Configuration"/>
+            </Rules>
+        </AttributeInfo>
 	</Attributes>
  
 	<ResourceFamilies>

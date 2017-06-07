@@ -9,7 +9,6 @@ import tg_helper
 class TestCenterControllerDriver(ResourceDriverInterface):
 
     def __init__(self):
-        self.status = "keep_alive"
         self.handler = StcHandler()
 
     def initialize(self, context):

@@ -38,6 +38,10 @@ class TestTestCenterControllerDriver(unittest.TestCase):
         self.session.SetAttributeValue(reservation_ports[1].Name, 'Logical Name', 'Port 2')
         self.driver.load_config(self.context, os.path.dirname(__file__).replace('\\', '/') + '/test_config.tcc')
 
+    def test_reload_config(self):
+        self.test_load_config()
+        self.driver.load_config(self.context, os.path.dirname(__file__).replace('\\', '/') + '/test_config.tcc')
+
 
 if __name__ == '__main__':
     import sys

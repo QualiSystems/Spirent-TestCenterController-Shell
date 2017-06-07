@@ -30,9 +30,6 @@ class StcHandler(object):
         self.logger.debug('client_install_path = ' + client_install_path)
         api_wrapper = StcTclWrapper(self.logger, client_install_path, self.tcl_interp)
         self.stc = StcApp(self.logger, api_wrapper)
-
-        if lab_server:
-            self.logger.info("connecting to lab server {}".format(lab_server))
         self.stc.connect(lab_server=lab_server)
 
     def tearDown(self):
@@ -55,7 +52,7 @@ class StcHandler(object):
 
         for name, port in config_ports.items():
             if name in reservation_ports:
-                address = re.sub('M|PG[0-9]+\/|P', '', reservation_ports[name].FullAddress)
+                address = tg_helper.get_address(reservation_ports[name])
                 self.logger.debug('Logical Port {} will be reserved on Physical location {}'.format(name, address))
                 port.reserve(address, force=True, wait_for_up=False)
             else:
@@ -98,18 +95,16 @@ class StcHandler(object):
             statistics_str = json.dumps(statistics_, indent=4, sort_keys=True, ensure_ascii=False)
             return json.loads(statistics_str)
         elif output_type.strip().lower() == 'csv':
-
             statistics = OrderedDict()
             for obj_name in statistics_['topLevelName']:
                 statistics[obj_name] = stats_obj.get_object_stats(obj_name)
             captions = statistics[statistics_['topLevelName'][0]].keys()
-
             output = io.BytesIO()
             w = csv.DictWriter(output, captions)
             w.writeheader()
             for obj_name in statistics:
                 w.writerow(statistics[obj_name])
-            tg_helper.attach_stats_csv(context, self.logger, view_name, output)
-            return output.getvalue().strip('\r\n')
+            tg_helper.attach_stats_csv(context, self.logger, view_name, output.getvalue().strip())
+            return output.getvalue().strip()
         else:
-            raise Exception('Output type should be CSV/JSON - got {}'.format(output_type))
+            raise Exception('Output type should be CSV/JSON - got "{}"'.format(output_type))
