@@ -1,5 +1,4 @@
 
-import re
 import json
 import csv
 import io
@@ -12,18 +11,17 @@ from testcenter.stc_app import StcApp
 from testcenter.api.stc_tcl import StcTclWrapper
 from testcenter.stc_statistics_view import StcStats
 
-import tg_helper
+from cloudshell.traffic import tg_helper
 
 
 class StcHandler(object):
 
-    def initialize(self, client_install_path, lab_server=''):
-        """
-        :param client_install_path: full path to STC client installation directory (up to, including, version number)
-        :param lab_server: lab server address (if required)
-        """
+    def initialize(self, context, logger):
 
-        self.logger = tg_helper.create_logger('c:/temp/stc_controller_logger.txt')
+        self.logger = logger
+
+        client_install_path = context.resource.attributes['Client Install Path'].replace('\\', '/')
+        lab_server = context.resource.attributes['Controller Address']
 
         self.tcl_interp = TgnTkMultithread()
         self.tcl_interp.start()
@@ -33,6 +31,7 @@ class StcHandler(object):
         self.stc.connect(lab_server=lab_server)
 
     def tearDown(self):
+        self.stc.disconnect()
         self.tcl_interp.stop()
 
     def load_config(self, context, stc_config_file_name):
@@ -73,19 +72,12 @@ class StcHandler(object):
         self.stc.stop_devices()
 
     def start_traffic(self, blocking):
-        """
-        :param blocking: "True"/"False" - whether to run traffic in blocking mode or not.
-        """
         self.stc.start_traffic(tg_helper.is_blocking(blocking))
 
     def stop_traffic(self):
         self.stc.stop_traffic()
 
     def get_statistics(self, context, view_name, output_type):
-        """
-        :param view_name: name of statistics view.
-        :param output_type: "JSON"/"CSV"
-        """
 
         stats_obj = StcStats(view_name)
         stats_obj.read_stats()

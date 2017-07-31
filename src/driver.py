@@ -1,23 +1,14 @@
 
-from cloudshell.shell.core.resource_driver_interface import ResourceDriverInterface
-
 from stc_handler import StcHandler
 
-import tg_helper
+from cloudshell.traffic.driver import TrafficControllerDriver
 
 
-class TestCenterControllerDriver(ResourceDriverInterface):
+class TestCenterControllerDriver(TrafficControllerDriver):
 
     def __init__(self):
+        super(self.__class__, self).__init__()
         self.handler = StcHandler()
-
-    def initialize(self, context):
-        """
-        :type context:  context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
-        """
-
-        self.handler.initialize(context.resource.attributes['Client Install Path'],
-                                context.resource.attributes['Controller Address'])
 
     def load_config(self, context, stc_config_file_name):
         """ Load STC configuration file and reserve ports.
@@ -26,7 +17,7 @@ class TestCenterControllerDriver(ResourceDriverInterface):
         :param stc_config_file_name: Full path to STC configuration file name - tcc or xml
         """
 
-        tg_helper.enqueue_keep_alive(context)
+        super(self.__class__, self).load_config(context)
         self.handler.load_config(context, stc_config_file_name)
         return stc_config_file_name + ' loaded, ports reserved'
 
@@ -82,11 +73,15 @@ class TestCenterControllerDriver(ResourceDriverInterface):
 
         return self.handler.get_statistics(context, view_name, output_type)
 
+    #
+    # Parent commands are not visible so we re define them in child.
+    #
+
+    def initialize(self, context):
+        super(self.__class__, self).initialize(context)
+
     def cleanup(self):
-        self.handler.tearDown()
+        super(self.__class__, self).cleanup()
 
     def keep_alive(self, context, cancellation_context):
-        while not cancellation_context.is_cancelled:
-            pass
-        if cancellation_context.is_cancelled:
-            self.handler.tearDown()
+        super(self.__class__, self).keep_alive(context, cancellation_context)
