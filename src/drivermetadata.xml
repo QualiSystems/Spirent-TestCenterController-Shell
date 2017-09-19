@@ -1,4 +1,4 @@
-<Driver Description="Shell to setup and run STC traffic" MainClass="driver.TestCenterControllerDriver" Name="TestCenterControllerDriver" Version="1.2.1">
+<Driver Description="Shell to setup and run STC traffic" MainClass="driver.TestCenterControllerDriver" Name="TestCenterControllerDriver" Version="1.2.5">
     <Layout>
          <Category Name="Hidden Commands">
             <Command Description="" DisplayName="Keep Alive" EnableCancellation="true" Name="keep_alive" Tags="" />
