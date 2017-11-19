@@ -6,9 +6,8 @@ from collections import OrderedDict
 
 from cloudshell.shell.core.session.cloudshell_session import CloudShellSessionContext
 
-from trafficgenerator.tgn_tcl import TgnTkMultithread
-from testcenter.stc_app import StcApp
-from testcenter.api.stc_tcl import StcTclWrapper
+from trafficgenerator.tgn_utils import ApiType
+from testcenter.stc_app import init_stc
 from testcenter.stc_statistics_view import StcStats
 
 from cloudshell.traffic import tg_helper
@@ -23,16 +22,12 @@ class StcHandler(object):
         client_install_path = context.resource.attributes['Client Install Path'].replace('\\', '/')
         lab_server = context.resource.attributes['Controller Address']
 
-        self.tcl_interp = TgnTkMultithread()
-        self.tcl_interp.start()
         self.logger.debug('client_install_path = ' + client_install_path)
-        api_wrapper = StcTclWrapper(self.logger, client_install_path, self.tcl_interp)
-        self.stc = StcApp(self.logger, api_wrapper)
+        self.stc = init_stc(ApiType.tcl, self.logger, client_install_path, lab_server)
         self.stc.connect(lab_server=lab_server)
 
     def tearDown(self):
         self.stc.disconnect()
-        self.tcl_interp.stop()
 
     def load_config(self, context, stc_config_file_name):
         """
@@ -79,7 +74,7 @@ class StcHandler(object):
 
     def get_statistics(self, context, view_name, output_type):
 
-        stats_obj = StcStats(view_name)
+        stats_obj = StcStats(self.stc.project, view_name)
         stats_obj.read_stats()
         statistics_ = stats_obj.statistics
 

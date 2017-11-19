@@ -10,23 +10,23 @@ import os
 import logging
 import unittest
 
-from cloudshell.traffic import tg_helper
+from cloudshell.traffic.tg_helper import get_reservation_ports
+from shellfoundry.releasetools.test_helper import create_session_from_cloudshell_config, create_command_context
 
 from driver import TestCenterControllerDriver
 
 server = 'localhost'
 blueprint = 'stc test'
-blueprint = 'Brocade controller'
-client_install_path = 'C:/Program Files (x86)/Spirent Communications/Spirent TestCenter 4.52'
+client_install_path = 'C:/Program Files (x86)/Spirent Communications/Spirent TestCenter 4.71'
 
 
 class TestTestCenterControllerDriver(unittest.TestCase):
 
     def setUp(self):
 
-        self.session = tg_helper.create_session_from_cloudshell_config()
-        self.context = tg_helper.create_context(server, self.session, blueprint, 'TestCenter Controller',
-                                                client_install_path)
+        self.session = create_session_from_cloudshell_config()
+        self.context = create_command_context(server, self.session, blueprint, 'TestCenter Controller',
+                                              client_install_path)
         self.driver = TestCenterControllerDriver()
         self.driver.initialize(self.context)
         print self.driver.logger.handlers[0].baseFilename
@@ -41,7 +41,7 @@ class TestTestCenterControllerDriver(unittest.TestCase):
         pass
 
     def test_load_config(self):
-        reservation_ports = tg_helper.get_reservation_ports(self.session, self.context.reservation.reservation_id)
+        reservation_ports = get_reservation_ports(self.session, self.context.reservation.reservation_id)
         self.session.SetAttributeValue(reservation_ports[0].Name, 'Logical Name', 'Port 1')
         self.session.SetAttributeValue(reservation_ports[1].Name, 'Logical Name', 'Port 2')
         self.driver.load_config(self.context, os.path.dirname(__file__).replace('\\', '/') + '/test_config.tcc')
