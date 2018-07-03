@@ -63,3 +63,4 @@ cloudshell_config.yml
 .project
 
 .settings/*
+.pydevproject

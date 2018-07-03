@@ -1,4 +1,5 @@
 cloudshell-shell-core>=3.1,<3.2
 cloudshell-automation-api>=7.0,<7.1
-cloudshell-traffic>=0.9.9.8
-stcooapi==1.1.2
+cloudshell-traffic>=2.0.1
+
+pytestcenter==1.2.0

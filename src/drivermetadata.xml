@@ -1,7 +1,13 @@
-<Driver Description="Shell to setup and run STC traffic" MainClass="driver.TestCenterControllerDriver" Name="TestCenterControllerDriver" Version="1.2.7">
+<Driver Description="Shell to setup and run STC traffic" MainClass="driver.TestCenterControllerDriver" Name="TestCenterControllerDriver" Version="1.5.0">
     <Layout>
-         <Category Name="Hidden Commands">
-            <Command Description="" DisplayName="Keep Alive" EnableCancellation="true" Name="keep_alive" Tags="" />
+
+       	<Category Name="Hidden Commands">
+            <Command Description="API only command to get REST session ID" Name="get_session_id" Tags="" />
+            <Command Description="API only command to get STC object children" Name="get_children" Tags="" />
+            <Command Description="API only command to get STC object attributes" Name="get_attributes" Tags="" />
+            <Command Description="API only command to set STC object attribute" Name="set_attribute" Tags="" />
+            <Command Description="API only command to perform STC command" Name="perform_command" Tags="" />
+            <Command Description="" DisplayName="" EnableCancellation="true" Name="keep_alive" Tags="" />
         </Category>
 
 		<Command Description="Reserve ports and load configuration" DisplayName="Load configuration" Name="load_config">
@@ -24,8 +30,13 @@
        	</Command>
         <Command Description="Get view statistics" DisplayName="Get Statistics" Name="get_statistics">
          <Parameters>
-            	<Parameter DefaultValue="" Description="generatorPortResults, analyzerPortResults etc." DisplayName="View Name" Mandatory="True" Name="view_name" Type="String" />
+          	<Parameter DefaultValue="" Description="generatorPortResults, analyzerPortResults etc." DisplayName="View Name" Mandatory="True" Name="view_name" Type="String" />
                 <Parameter AllowedValues="CSV,JSON" DefaultValue="CSV" Description="CSV or JSON" DisplayName="Output Type" Mandatory="True" Name="output_type" Type="Lookup" />
+            </Parameters>
+        </Command>
+        <Command Description="Sequencer command" DisplayName="Perform sequencer command" Name="sequencer_command">
+			<Parameters>
+                <Parameter AllowedValues="Start,Stop,Wait" Description="Start, stop or wait for sequencer end (blocking)" DisplayName="Operation" Mandatory="True" Name="command" Type="Lookup" />
             </Parameters>
         </Command>
 

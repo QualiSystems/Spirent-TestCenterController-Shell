@@ -73,6 +73,15 @@ class TestCenterControllerDriver(TrafficControllerDriver):
 
         return self.handler.get_statistics(context, view_name, output_type)
 
+    def sequencer_command(self, context, command):
+        """ Get view statistics.
+
+        :type context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
+        :param command: from GUI - Start/Stop/Wait, from API also available Step/Pause.
+        """
+
+        self.handler.sequencer_command(command)
+
     #
     # Parent commands are not visible so we re define them in child.
     #
@@ -85,3 +94,57 @@ class TestCenterControllerDriver(TrafficControllerDriver):
 
     def keep_alive(self, context, cancellation_context):
         super(self.__class__, self).keep_alive(context, cancellation_context)
+
+    #
+    # Hidden commands for developers only.
+    #
+
+    def get_session_id(self, context):
+        """ Returns the REST session ID.
+
+        :type context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
+        """
+
+        return self.handler.get_session_id()
+
+    def get_children(self, context, obj_ref, children_type=''):
+        """ Returns all children of object.
+
+        :type context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
+        :param obj_ref: valid STC object reference.
+        :param children_type: requested children type. If None returns all children.
+        :return: list of children.
+        """
+
+        return self.handler.get_children(obj_ref, children_type)
+
+    def get_attributes(self, context, obj_ref):
+        """ Returns all children of object.
+
+        :type context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
+        :param obj_ref: valid STC object reference.
+        :return: list of <attribute, value>.
+        """
+
+        return self.handler.get_attributes(obj_ref)
+
+    def set_attribute(self, context, obj_ref, attr_name, attr_value):
+        """ Set object attribute.
+
+        :type context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
+        :param obj_ref: valid STC object reference.
+        :param attr_name: STC attribue name.
+        :param attr_value: STC attribue value.
+        """
+
+        self.handler.set_attribute(obj_ref, attr_name, attr_value)
+
+    def perform_command(self, context, command, parameters_json):
+        """ Set object attribute.
+
+        :type context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
+        :param command: valid STC object reference.
+        :param parameters_json: parameters dict {name: value} as serialized json.
+        """
+
+        return self.handler.perform_command(command, parameters_json)

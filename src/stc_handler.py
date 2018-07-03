@@ -5,12 +5,12 @@ import io
 from collections import OrderedDict
 
 from cloudshell.shell.core.session.cloudshell_session import CloudShellSessionContext
+from cloudshell.traffic.tg_helper import (get_reservation_resources, get_address, is_blocking, attach_stats_csv,
+                                          get_family_attribute)
 
 from trafficgenerator.tgn_utils import ApiType
 from testcenter.stc_app import init_stc
 from testcenter.stc_statistics_view import StcStats
-
-from cloudshell.traffic import tg_helper
 
 
 class StcHandler(object):
@@ -19,12 +19,11 @@ class StcHandler(object):
 
         self.logger = logger
 
-        client_install_path = context.resource.attributes['Client Install Path'].replace('\\', '/')
-        lab_server = context.resource.attributes['Controller Address']
-
-        self.logger.debug('client_install_path = ' + client_install_path)
-        self.stc = init_stc(ApiType.tcl, self.logger, client_install_path, lab_server)
-        self.stc.connect(lab_server=lab_server)
+        controller = context.resource.attributes['Controller Address']
+        port = context.resource.attributes['Controller TCP Port']
+        port = int(port) if port else 8888
+        self.stc = init_stc(ApiType.rest, self.logger, rest_server=controller, rest_port=port)
+        self.stc.connect()
 
     def tearDown(self):
         self.stc.disconnect()
@@ -41,12 +40,15 @@ class StcHandler(object):
         my_api = CloudShellSessionContext(context).get_api()
 
         reservation_ports = {}
-        for port in tg_helper.get_reservation_ports(my_api, reservation_id):
-            reservation_ports[my_api.GetAttributeValue(port.Name, 'Logical Name').Value.strip()] = port
+        for port in get_reservation_resources(my_api, reservation_id,
+                                              'Generic Traffic Generator Port',
+                                              'PerfectStorm Chassis Shell 2G.GenericTrafficGeneratorPort',
+                                              'STC Chassis Shell 2G.GenericTrafficGeneratorPort'):
+            reservation_ports[get_family_attribute(my_api, port, 'Logical Name').Value.strip()] = port
 
         for name, port in config_ports.items():
             if name in reservation_ports:
-                address = tg_helper.get_address(reservation_ports[name])
+                address = get_address(reservation_ports[name])
                 self.logger.debug('Logical Port {} will be reserved on Physical location {}'.format(name, address))
                 port.reserve(address, force=True, wait_for_up=False)
             else:
@@ -67,7 +69,7 @@ class StcHandler(object):
         self.stc.stop_devices()
 
     def start_traffic(self, blocking):
-        self.stc.start_traffic(tg_helper.is_blocking(blocking))
+        self.stc.start_traffic(is_blocking(blocking))
 
     def stop_traffic(self):
         self.stc.stop_traffic()
@@ -91,7 +93,26 @@ class StcHandler(object):
             w.writeheader()
             for obj_name in statistics:
                 w.writerow(statistics[obj_name])
-            tg_helper.attach_stats_csv(context, self.logger, view_name, output.getvalue().strip())
+            attach_stats_csv(context, self.logger, view_name, output.getvalue().strip())
             return output.getvalue().strip()
         else:
             raise Exception('Output type should be CSV/JSON - got "{}"'.format(output_type))
+
+    def sequencer_command(self, command):
+        self.stc.sequencer_command()
+
+    def get_session_id(self):
+        return self.stc.api.session_id
+
+    def get_children(self, obj_ref, child_type):
+        children_attribute = 'children-' + child_type if child_type else 'children'
+        return self.stc.api.ls.get(obj_ref, children_attribute).split()
+
+    def get_attributes(self, obj_ref):
+        return self.stc.api.ls.get(obj_ref)
+
+    def set_attribute(self, obj_ref, attr_name, attr_value):
+        return self.stc.api.ls.config(obj_ref, **{attr_name: attr_value})
+
+    def perform_command(self, command, parameters_json):
+        return self.stc.api.ls.perform(command, json.loads(parameters_json))
