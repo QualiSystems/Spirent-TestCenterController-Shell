@@ -11,10 +11,10 @@ from cloudshell.api.cloudshell_api import AttributeNameValue, InputNameValue
 from cloudshell.traffic.tg_helper import get_reservation_resources, set_family_attribute
 from shellfoundry.releasetools.test_helper import create_session_from_cloudshell_config, create_command_context
 
-controller = '172.40.0.163'
+controller = 'localhost'
 port = '8888'
 
-ports = ['158/Module1/PG1/Port1', '158/Module1/PG1/Port2']
+ports = ['swisscom/Module1/PG2/Port3', 'swisscom/Module1/PG2/Port4']
 attributes = [AttributeNameValue('Controller Address', controller),
               AttributeNameValue('Controller TCP Port', port)]
 
@@ -79,42 +79,38 @@ class TestStcControllerDriver(unittest.TestCase):
                                                      InputNameValue('parameters_json', json.dumps(parameters))])
 
     def test_load_config(self):
-        self._load_config(path.join(path.dirname(__file__), 'test_config_840.ixncfg'))
+        self._load_config(path.join(path.dirname(__file__), 'test_config.tcc'))
 
     def test_run_traffic(self):
-        self._load_config(path.join(path.dirname(__file__), 'test_config_840.ixncfg'))
+        self._load_config(path.join(path.dirname(__file__), 'test_config.tcc'))
         self.session.ExecuteCommand(self.context.reservation.reservation_id, 'TestCenter Controller', 'Service',
                                     'send_arp')
         self.session.ExecuteCommand(self.context.reservation.reservation_id, 'TestCenter Controller', 'Service',
-                                    'send_arp')
-        self.session.ExecuteCommand(self.context.reservation.reservation_id, 'TestCenter Controller', 'Service',
-                                    'start_protocols')
-        self.session.ExecuteCommand(self.context.reservation.reservation_id, 'TestCenter Controller', 'Service',
-                                    'stop_protocols')
+                                    'start_devices')
         self.session.ExecuteCommand(self.context.reservation.reservation_id, 'TestCenter Controller', 'Service',
                                     'start_traffic', [InputNameValue('blocking', 'True')])
-        self.session.ExecuteCommand(self.context.reservation.reservation_id, 'TestCenter Controller', 'Service',
-                                    'stop_traffic')
         stats = self.session.ExecuteCommand(self.context.reservation.reservation_id,
                                             'TestCenter Controller', 'Service', 'get_statistics',
-                                            [InputNameValue('view_name', 'Port Statistics'),
+                                            [InputNameValue('view_name', 'generatorportresults'),
                                              InputNameValue('output_type', 'JSON')])
-        assert(int(json.loads(stats.Output)['Port 1']['Frames Tx.']) >= 1600)
+        assert(int(json.loads(stats.Output)['TotalFrameCount']
+                   [json.loads(stats.Output)['topLevelName'].index('Port 1')]) == 4000)
 
-    def test_run_quick_test(self):
-        self._load_config(path.join(path.dirname(__file__), 'quick_tests_840.ixncfg'))
+    def test_run_sequencer(self):
+        self._load_config(path.join(path.dirname(__file__), 'test_sequencer.tcc'))
         self.session.ExecuteCommand(self.context.reservation.reservation_id, 'TestCenter Controller', 'Service',
-                                    'run_quick_test', [InputNameValue('test', 'QuickTest3')])
+                                    'sequencer_command', [InputNameValue('command', 'Start')])
+        self.session.ExecuteCommand(self.context.reservation.reservation_id, 'TestCenter Controller', 'Service',
+                                    'sequencer_command', [InputNameValue('command', 'Wait')])
 
     def _load_config(self, config):
         reservation_ports = get_reservation_resources(self.session, self.context.reservation.reservation_id,
                                                       'Generic Traffic Generator Port',
-                                                      'PerfectStorm Chassis Shell 2G.GenericTrafficGeneratorPort',
                                                       'STC Chassis Shell 2G.GenericTrafficGeneratorPort')
         set_family_attribute(self.session, reservation_ports[0], 'Logical Name', 'Port 1')
         set_family_attribute(self.session, reservation_ports[1], 'Logical Name', 'Port 2')
         self.session.ExecuteCommand(self.context.reservation.reservation_id, 'TestCenter Controller', 'Service',
-                                    'load_config', [InputNameValue('ixn_config_file_name', config)])
+                                    'load_config', [InputNameValue('stc_config_file_name', config)])
 
 
 if __name__ == '__main__':

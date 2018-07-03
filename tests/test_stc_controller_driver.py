@@ -14,7 +14,7 @@ from src.driver import TestCenterControllerDriver
 controller = 'localhost'
 port = '8888'
 
-ports = ['158/Module1/PG1/Port1', '158/Module1/PG1/Port2']
+ports = ['swisscom/Module1/PG2/Port3', 'swisscom/Module1/PG2/Port4']
 attributes = {'Controller Address': controller,
               'Controller TCP Port': port}
 
@@ -49,19 +49,19 @@ class TestStcControllerDriver(unittest.TestCase):
                                                       'STC Chassis Shell 2G.GenericTrafficGeneratorPort')
         set_family_attribute(self.session, reservation_ports[0], 'Logical Name', 'Port 1')
         set_family_attribute(self.session, reservation_ports[1], 'Logical Name', 'Port 2')
-        self.driver.load_config(self.context, path.join(path.dirname(__file__), 'test_config_840.ixncfg'))
+        self.driver.load_config(self.context, path.join(path.dirname(__file__), 'test_config.tcc'))
 
     def test_run_traffic(self):
         self.test_load_config()
         self.driver.send_arp(self.context)
         self.driver.start_traffic(self.context, 'False')
         self.driver.stop_traffic(self.context)
-        stats = self.driver.get_statistics(self.context, 'Port Statistics', 'JSON')
-        assert(int(stats['Port 1']['Frames Tx.']) <= 1600)
+        stats = self.driver.get_statistics(self.context, 'generatorportresults', 'JSON')
+        assert(int(stats['TotalFrameCount'][stats['topLevelName'].index('Port 1')]) <= 4000)
         self.driver.start_traffic(self.context, 'True')
-        stats = self.driver.get_statistics(self.context, 'Port Statistics', 'JSON')
-        assert(int(stats['Port 1']['Frames Tx.']) == 1600)
-        stats = self.driver.get_statistics(self.context, 'Port Statistics', 'csv')
+        stats = self.driver.get_statistics(self.context, 'generatorportresults', 'JSON')
+        assert(int(stats['TotalFrameCount'][stats['topLevelName'].index('Port 1')]) == 4000)
+        stats = self.driver.get_statistics(self.context, 'generatorportresults', 'csv')
         print stats
 
     def negative_tests(self):
@@ -73,25 +73,26 @@ class TestStcControllerDriver(unittest.TestCase):
         set_family_attribute(self.session, reservation_ports[0], 'Logical Name', 'Port 1')
         set_family_attribute(self.session, reservation_ports[1], 'Logical Name', '')
         self.assertRaises(Exception, self.driver.load_config, self.context,
-                          path.join(path.dirname(__file__), 'test_config_840.ixncfg'))
+                          path.join(path.dirname(__file__), 'test_config.tcc'))
         set_family_attribute(self.session, reservation_ports[1], 'Logical Name', 'Port 1')
         self.assertRaises(Exception, self.driver.load_config, self.context,
-                          path.join(path.dirname(__file__), 'test_config_840.ixncfg'))
+                          path.join(path.dirname(__file__), 'test_config.tcc'))
         set_family_attribute(self.session, reservation_ports[1], 'Logical Name', 'Port x')
         self.assertRaises(Exception, self.driver.load_config, self.context,
-                          path.join(path.dirname(__file__), 'test_config_840.ixncfg'))
+                          path.join(path.dirname(__file__), 'test_config.tcc'))
         # cleanup
         set_family_attribute(self.session, reservation_ports[1], 'Logical Name', 'Port 2')
 
-    def test_run_quick_test(self):
+    def test_run_sequencer(self):
         reservation_ports = get_reservation_resources(self.session, self.context.reservation.reservation_id,
                                                       'Generic Traffic Generator Port',
                                                       'PerfectStorm Chassis Shell 2G.GenericTrafficGeneratorPort',
                                                       'STC Chassis Shell 2G.GenericTrafficGeneratorPort')
         set_family_attribute(self.session, reservation_ports[0], 'Logical Name', 'Port 1')
         set_family_attribute(self.session, reservation_ports[1], 'Logical Name', 'Port 2')
-        self.driver.load_config(self.context, path.join(path.dirname(__file__), 'quick_tests_840.ixncfg'))
-        print self.driver.run_quick_test(self.context, 'QuickTest3')
+        self.driver.load_config(self.context, path.join(path.dirname(__file__), 'test_sequencer.tcc'))
+        self.driver.sequencer_command(self.context, 'Start')
+        self.driver.sequencer_command(self.context, 'Wait')
 
 
 if __name__ == '__main__':

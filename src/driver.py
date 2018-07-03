@@ -107,16 +107,16 @@ class TestCenterControllerDriver(TrafficControllerDriver):
 
         return self.handler.get_session_id()
 
-    def get_children(self, context, obj_ref, children_type=''):
+    def get_children(self, context, obj_ref, child_type=''):
         """ Returns all children of object.
 
         :type context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
         :param obj_ref: valid STC object reference.
-        :param children_type: requested children type. If None returns all children.
+        :param child_type: requested children type. If None returns all children.
         :return: list of children.
         """
 
-        return self.handler.get_children(obj_ref, children_type)
+        return self.handler.get_children(obj_ref, child_type)
 
     def get_attributes(self, context, obj_ref):
         """ Returns all children of object.

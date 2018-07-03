@@ -9,7 +9,7 @@ from cloudshell.traffic.tg_helper import (get_reservation_resources, get_address
                                           get_family_attribute)
 
 from trafficgenerator.tgn_utils import ApiType
-from testcenter.stc_app import init_stc
+from testcenter.stc_app import init_stc, StcSequencerOperation
 from testcenter.stc_statistics_view import StcStats
 
 
@@ -69,6 +69,7 @@ class StcHandler(object):
         self.stc.stop_devices()
 
     def start_traffic(self, blocking):
+        self.stc.clear_results()
         self.stc.start_traffic(is_blocking(blocking))
 
     def stop_traffic(self):
@@ -99,7 +100,7 @@ class StcHandler(object):
             raise Exception('Output type should be CSV/JSON - got "{}"'.format(output_type))
 
     def sequencer_command(self, command):
-        self.stc.sequencer_command()
+        self.stc.sequencer_command(StcSequencerOperation[command.lower()])
 
     def get_session_id(self):
         return self.stc.api.session_id
