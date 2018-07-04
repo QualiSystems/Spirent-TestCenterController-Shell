@@ -36,7 +36,7 @@
         </Command>
         <Command Description="Sequencer command" DisplayName="Perform sequencer command" Name="sequencer_command">
 			<Parameters>
-                <Parameter AllowedValues="Start,Stop,Wait" Description="Start, stop or wait for sequencer end (blocking)" DisplayName="Operation" Mandatory="True" Name="command" Type="Lookup" />
+                <Parameter AllowedValues="Start,Stop,Wait" Description="Start, stop or wait for sequencer end (blocking)" DisplayName="Command" Mandatory="True" Name="command" Type="Lookup" />
             </Parameters>
         </Command>
 

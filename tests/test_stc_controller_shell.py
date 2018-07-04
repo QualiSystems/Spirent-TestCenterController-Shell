@@ -19,7 +19,7 @@ attributes = [AttributeNameValue('Controller Address', controller),
               AttributeNameValue('Controller TCP Port', port)]
 
 
-class TestStcControllerDriver(unittest.TestCase):
+class TestStcControllerShell(unittest.TestCase):
 
     def setUp(self):
         self.session = create_session_from_cloudshell_config()
@@ -66,7 +66,7 @@ class TestStcControllerDriver(unittest.TestCase):
         options_attrs = self.session.ExecuteCommand(self.context.reservation.reservation_id, 'TestCenter Controller',
                                                     'Service', 'get_attributes',
                                                     [InputNameValue('obj_ref', options_ref)])
-        print('AutomationOptions-Attributes = {}'.format(options_attrs.Output))\
+        print('AutomationOptions-Attributes = {}'.format(options_attrs.Output))
 
         parameters = {'Parent': project_obj,
                       'ResultParent': project_obj,
@@ -102,6 +102,12 @@ class TestStcControllerDriver(unittest.TestCase):
                                     'sequencer_command', [InputNameValue('command', 'Start')])
         self.session.ExecuteCommand(self.context.reservation.reservation_id, 'TestCenter Controller', 'Service',
                                     'sequencer_command', [InputNameValue('command', 'Wait')])
+        stats = self.session.ExecuteCommand(self.context.reservation.reservation_id,
+                                            'TestCenter Controller', 'Service', 'get_statistics',
+                                            [InputNameValue('view_name', 'generatorportresults'),
+                                             InputNameValue('output_type', 'JSON')])
+        assert(int(json.loads(stats.Output)['GeneratorIpv4FrameCount']
+                   [json.loads(stats.Output)['topLevelName'].index('Port 1')]) == 8000)
 
     def _load_config(self, config):
         reservation_ports = get_reservation_resources(self.session, self.context.reservation.reservation_id,

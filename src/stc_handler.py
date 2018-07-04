@@ -3,6 +3,7 @@ import json
 import csv
 import io
 from collections import OrderedDict
+import logging
 
 from cloudshell.shell.core.session.cloudshell_session import CloudShellSessionContext
 from cloudshell.traffic.tg_helper import (get_reservation_resources, get_address, is_blocking, attach_stats_csv,
@@ -18,6 +19,8 @@ class StcHandler(object):
     def initialize(self, context, logger):
 
         self.logger = logger
+        logging.basicConfig(level=logging.DEBUG)
+        logging.getLogger().addHandler(logging.FileHandler(self.logger.handlers[0].baseFilename))
 
         controller = context.resource.attributes['Controller Address']
         port = context.resource.attributes['Controller TCP Port']
@@ -100,6 +103,8 @@ class StcHandler(object):
             raise Exception('Output type should be CSV/JSON - got "{}"'.format(output_type))
 
     def sequencer_command(self, command):
+        if StcSequencerOperation[command.lower()] == StcSequencerOperation.start:
+            self.stc.clear_results()
         self.stc.sequencer_command(StcSequencerOperation[command.lower()])
 
     def get_session_id(self):

@@ -27,7 +27,8 @@ class TestStcControllerDriver(unittest.TestCase):
         self.driver = TestCenterControllerDriver()
         self.driver.initialize(self.context)
         print self.driver.logger.handlers[0].baseFilename
-        self.driver.logger.addHandler(logging.StreamHandler(sys.stdout))
+        logging.basicConfig(level=logging.DEBUG)
+        logging.getLogger().addHandler(logging.FileHandler(self.driver.logger.handlers[0].baseFilename))
 
     def tearDown(self):
         self.driver.cleanup()
