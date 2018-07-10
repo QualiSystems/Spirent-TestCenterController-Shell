@@ -82,16 +82,15 @@ class StcHandler(object):
 
         stats_obj = StcStats(self.stc.project, view_name)
         stats_obj.read_stats()
-        statistics_ = stats_obj.statistics
+        statistics = OrderedDict()
+        for obj_name in stats_obj.statistics['topLevelName']:
+            statistics[obj_name] = stats_obj.get_object_stats(obj_name)
 
         if output_type.strip().lower() == 'json':
-            statistics_str = json.dumps(statistics_, indent=4, sort_keys=True, ensure_ascii=False)
+            statistics_str = json.dumps(statistics, indent=4, sort_keys=True, ensure_ascii=False)
             return json.loads(statistics_str)
         elif output_type.strip().lower() == 'csv':
-            statistics = OrderedDict()
-            for obj_name in statistics_['topLevelName']:
-                statistics[obj_name] = stats_obj.get_object_stats(obj_name)
-            captions = statistics[statistics_['topLevelName'][0]].keys()
+            captions = statistics[stats_obj.statistics['topLevelName'][0]].keys()
             output = io.BytesIO()
             w = csv.DictWriter(output, captions)
             w.writeheader()

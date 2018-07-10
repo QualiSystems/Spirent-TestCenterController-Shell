@@ -58,10 +58,10 @@ class TestStcControllerDriver(unittest.TestCase):
         self.driver.start_traffic(self.context, 'False')
         self.driver.stop_traffic(self.context)
         stats = self.driver.get_statistics(self.context, 'generatorportresults', 'JSON')
-        assert(int(stats['TotalFrameCount'][stats['topLevelName'].index('Port 1')]) <= 4000)
+        assert(int(stats['Port 1']['TotalFrameCount']) <= 4000)
         self.driver.start_traffic(self.context, 'True')
         stats = self.driver.get_statistics(self.context, 'generatorportresults', 'JSON')
-        assert(int(stats['TotalFrameCount'][stats['topLevelName'].index('Port 1')]) == 4000)
+        assert(int(stats['Port 1']['TotalFrameCount']) == 4000)
         stats = self.driver.get_statistics(self.context, 'generatorportresults', 'csv')
         print stats
 

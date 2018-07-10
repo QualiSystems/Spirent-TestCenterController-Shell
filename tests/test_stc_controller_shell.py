@@ -93,8 +93,7 @@ class TestStcControllerShell(unittest.TestCase):
                                             'TestCenter Controller', 'Service', 'get_statistics',
                                             [InputNameValue('view_name', 'generatorportresults'),
                                              InputNameValue('output_type', 'JSON')])
-        assert(int(json.loads(stats.Output)['TotalFrameCount']
-                   [json.loads(stats.Output)['topLevelName'].index('Port 1')]) == 4000)
+        assert(int(json.loads(stats.Output)['Port 1']['TotalFrameCount']) == 4000)
 
     def test_run_sequencer(self):
         self._load_config(path.join(path.dirname(__file__), 'test_sequencer.tcc'))
@@ -106,8 +105,7 @@ class TestStcControllerShell(unittest.TestCase):
                                             'TestCenter Controller', 'Service', 'get_statistics',
                                             [InputNameValue('view_name', 'generatorportresults'),
                                              InputNameValue('output_type', 'JSON')])
-        assert(int(json.loads(stats.Output)['GeneratorIpv4FrameCount']
-                   [json.loads(stats.Output)['topLevelName'].index('Port 1')]) == 8000)
+        assert(int(json.loads(stats.Output)['Port 1']['GeneratorIpv4FrameCount']) == 8000)
 
     def _load_config(self, config):
         reservation_ports = get_reservation_resources(self.session, self.context.reservation.reservation_id,
