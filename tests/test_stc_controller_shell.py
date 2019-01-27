@@ -3,7 +3,6 @@
 
 from os import path
 import sys
-import unittest
 import time
 import json
 
@@ -14,18 +13,18 @@ from shellfoundry.releasetools.test_helper import create_session_from_cloudshell
 controller = 'localhost'
 port = '8888'
 
-ports = ['swisscom/Module1/PG2/Port3', 'swisscom/Module1/PG2/Port4']
+ports = ['152/Module1/PG1/Port1', '152/Module1/PG1/Port2']
 attributes = [AttributeNameValue('Controller Address', controller),
               AttributeNameValue('Controller TCP Port', port)]
 
 
-class TestStcControllerShell(unittest.TestCase):
+class TestStcControllerShell(object):
 
-    def setUp(self):
+    def setup(self):
         self.session = create_session_from_cloudshell_config()
         self.context = create_command_context(self.session, ports, 'TestCenter Controller', attributes)
 
-    def tearDown(self):
+    def teardown(self):
         reservation_id = self.context.reservation.reservation_id
         self.session.EndReservation(reservation_id)
         while self.session.GetReservationDetails(reservation_id).ReservationDescription.Status != 'Completed':
@@ -115,7 +114,3 @@ class TestStcControllerShell(unittest.TestCase):
         set_family_attribute(self.session, reservation_ports[1], 'Logical Name', 'Port 2')
         self.session.ExecuteCommand(self.context.reservation.reservation_id, 'TestCenter Controller', 'Service',
                                     'load_config', [InputNameValue('stc_config_file_name', config)])
-
-
-if __name__ == '__main__':
-    sys.exit(unittest.main())
