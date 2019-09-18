@@ -12,6 +12,7 @@ from cloudshell.traffic.tg_helper import (get_reservation_resources, get_address
 from trafficgenerator.tgn_utils import ApiType
 from testcenter.stc_app import init_stc, StcSequencerOperation
 from testcenter.stc_statistics_view import StcStats
+from stcrestclient.resthttp import RestHttpError
 
 
 class StcHandler(object):
@@ -53,7 +54,10 @@ class StcHandler(object):
             if name in reservation_ports:
                 address = get_address(reservation_ports[name])
                 self.logger.debug('Logical Port {} will be reserved on Physical location {}'.format(name, address))
-                port.reserve(address, force=True, wait_for_up=False)
+                try:
+                    port.reserve(address, force=True, wait_for_up=False)
+                except RestHttpError as e:
+                    print(e)
             else:
                 self.logger.error('Configuration port "{}" not found in reservation ports {}'.
                                   format(port, reservation_ports.keys()))

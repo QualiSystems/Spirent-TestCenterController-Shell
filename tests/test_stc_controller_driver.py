@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from os import path
-import sys
-import unittest
 import logging
 
 from cloudshell.traffic.tg_helper import get_reservation_resources, set_family_attribute
@@ -14,23 +12,24 @@ from src.driver import TestCenterControllerDriver
 controller = 'localhost'
 port = '8888'
 
-ports = ['swisscom/Module1/PG2/Port3', 'swisscom/Module1/PG2/Port4']
+ports = ['155/Module1/PG1/Port1']
+ports = ['dual media/Module11/PG5/Port5Copper', 'dual media/Module11/PG6/Port6Fiber']
 attributes = {'Controller Address': controller,
               'Controller TCP Port': port}
 
 
-class TestStcControllerDriver(unittest.TestCase):
+class TestStcControllerDriver(object):
 
-    def setUp(self):
+    def setup(self):
         self.session = create_session_from_cloudshell_config()
         self.context = create_command_context(self.session, ports, 'TestCenter Controller', attributes)
         self.driver = TestCenterControllerDriver()
         self.driver.initialize(self.context)
-        print self.driver.logger.handlers[0].baseFilename
+        print(self.driver.logger.handlers[0].baseFilename)
         logging.basicConfig(level=logging.DEBUG)
         logging.getLogger().addHandler(logging.FileHandler(self.driver.logger.handlers[0].baseFilename))
 
-    def tearDown(self):
+    def teardown(self):
         self.driver.cleanup()
         self.session.EndReservation(self.context.reservation.reservation_id)
 
@@ -52,6 +51,13 @@ class TestStcControllerDriver(unittest.TestCase):
         set_family_attribute(self.session, reservation_ports[1], 'Logical Name', 'Port 2')
         self.driver.load_config(self.context, path.join(path.dirname(__file__), 'test_config.tcc'))
 
+    def test_set_device_params(self):
+        self.test_load_config()
+        project = self.driver.get_children(self.context, 'system1', 'project')[0]
+        device = self.driver.get_children(self.context, project, 'EmulatedDevice')[0]
+        attributes = self.driver.get_attributes(self.context, device)
+        self.driver.set_attribute(self.context, device, 'RouterId', '1.2.3.4')
+
     def test_run_traffic(self):
         self.test_load_config()
         self.driver.send_arp(self.context)
@@ -63,7 +69,7 @@ class TestStcControllerDriver(unittest.TestCase):
         stats = self.driver.get_statistics(self.context, 'generatorportresults', 'JSON')
         assert(int(stats['Port 1']['TotalFrameCount']) == 4000)
         stats = self.driver.get_statistics(self.context, 'generatorportresults', 'csv')
-        print stats
+        print(stats)
 
     def negative_tests(self):
         reservation_ports = get_reservation_resources(self.session, self.context.reservation.reservation_id,
@@ -94,7 +100,3 @@ class TestStcControllerDriver(unittest.TestCase):
         self.driver.load_config(self.context, path.join(path.dirname(__file__), 'test_sequencer.tcc'))
         self.driver.sequencer_command(self.context, 'Start')
         self.driver.sequencer_command(self.context, 'Wait')
-
-
-if __name__ == '__main__':
-    sys.exit(unittest.main())

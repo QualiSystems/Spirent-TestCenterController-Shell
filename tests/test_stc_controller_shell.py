@@ -13,7 +13,7 @@ from shellfoundry.releasetools.test_helper import create_session_from_cloudshell
 controller = 'localhost'
 port = '8888'
 
-ports = ['152/Module1/PG1/Port1', '152/Module1/PG1/Port2']
+ports = ['155/Module1/PG1/Port1']
 attributes = [AttributeNameValue('Controller Address', controller),
               AttributeNameValue('Controller TCP Port', port)]
 
@@ -77,8 +77,41 @@ class TestStcControllerShell(object):
                                                     [InputNameValue('command', 'ResultsSubscribe'),
                                                      InputNameValue('parameters_json', json.dumps(parameters))])
 
+    def test_set_device_params(self):
+        reservation_ports = get_reservation_resources(self.session, self.context.reservation.reservation_id,
+                                                      'Generic Traffic Generator Port',
+                                                      'STC Chassis Shell 2G.GenericTrafficGeneratorPort')
+        set_family_attribute(self.session, reservation_ports[0], 'Logical Name', 'Port 1')
+        config = path.join(path.dirname(__file__), 'OnePort Spirent DVT TG File.tcc')
+        self.session.ExecuteCommand(self.context.reservation.reservation_id, 'TestCenter Controller', 'Service',
+                                    'load_config', [InputNameValue('stc_config_file_name', config)])
+        project = self.session.ExecuteCommand(self.context.reservation.reservation_id, 'TestCenter Controller',
+                                              'Service', 'get_children',
+                                              [InputNameValue('obj_ref', 'system1'),
+                                               InputNameValue('child_type', 'project')])
+        project_obj = json.loads(project.Output)[0]
+
+        devices = self.session.ExecuteCommand(self.context.reservation.reservation_id, 'TestCenter Controller',
+                                              'Service', 'get_children',
+                                              [InputNameValue('obj_ref', project_obj),
+                                               InputNameValue('child_type', 'EmulatedDevice')])
+        devices_obj = json.loads(devices.Output)
+
+        device_obj_1 = devices_obj[0]
+
+        device_1_attrs = self.session.ExecuteCommand(self.context.reservation.reservation_id, 'TestCenter Controller',
+                                                     'Service', 'get_attributes',
+                                                     [InputNameValue('obj_ref', device_obj_1)])
+        device_1_attrs_dict = json.loads(device_1_attrs.Output)
+
+        self.session.ExecuteCommand(self.context.reservation.reservation_id, 'TestCenter Controller',
+                                    'Service', 'set_attribute',
+                                    [InputNameValue('obj_ref', device_obj_1),
+                                     InputNameValue('attr_name', 'RouterID'),
+                                     InputNameValue('attr_value', '1.2.3.4')])
+
     def test_load_config(self):
-        self._load_config(path.join(path.dirname(__file__), 'test_config.tcc'))
+        self._load_config(path.join(path.dirname(__file__), 'OnePort Spirent DVT TG File.tcc'))
 
     def test_run_traffic(self):
         self._load_config(path.join(path.dirname(__file__), 'test_config.tcc'))
@@ -111,6 +144,6 @@ class TestStcControllerShell(object):
                                                       'Generic Traffic Generator Port',
                                                       'STC Chassis Shell 2G.GenericTrafficGeneratorPort')
         set_family_attribute(self.session, reservation_ports[0], 'Logical Name', 'Port 1')
-        set_family_attribute(self.session, reservation_ports[1], 'Logical Name', 'Port 2')
+#         set_family_attribute(self.session, reservation_ports[1], 'Logical Name', 'Port 2')
         self.session.ExecuteCommand(self.context.reservation.reservation_id, 'TestCenter Controller', 'Service',
                                     'load_config', [InputNameValue('stc_config_file_name', config)])
